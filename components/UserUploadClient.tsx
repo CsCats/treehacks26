@@ -142,21 +142,21 @@ export default function UserUploadClient() {
     if (detectorRef.current || loadingModel) return;
     setLoadingModel(true);
     try {
-      // Load TensorFlow.js and pose-detection via CDN to avoid Turbopack/SSR issues
+      // Load MediaPipe and pose-detection for true 3D support
+      await loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/pose');
       await loadScript('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core');
       await loadScript('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter');
       await loadScript('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl');
       await loadScript('https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection');
 
-      const tf = window.tf;
       const poseDetection = window.poseDetection;
 
-      await tf.ready();
-
       const detector = await poseDetection.createDetector(
-        poseDetection.SupportedModels.MoveNet,
+        poseDetection.SupportedModels.BlazePose,
         {
-          modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING,
+          runtime: 'mediapipe',
+          solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/pose',
+          modelType: 'full',
         }
       );
       detectorRef.current = detector;
@@ -168,11 +168,11 @@ export default function UserUploadClient() {
     }
   }, [loadingModel]);
 
-  // Face keypoints: 0 nose, 1 left_eye, 2 right_eye, 3 left_ear, 4 right_ear
+  // BlazePose face keypoints: 0 nose, 2 left_eye, 5 right_eye, 7 left_ear, 8 right_ear
   // Expand box to cover full face (forehead, cheeks, chin), not just eyes/nose
   const getFaceBbox = useCallback(
     (keypoints: Keypoint[], canvasWidth: number, canvasHeight: number) => {
-      const faceIndices = [0, 1, 2, 3, 4];
+      const faceIndices = [0, 2, 5, 7, 8]; // nose, eyes, ears
       const valid = faceIndices
         .map((i) => keypoints[i])
         .filter((kp) => kp && (kp.score ?? 1) > 0.3);
@@ -253,11 +253,20 @@ export default function UserUploadClient() {
     ) => {
       if (!skipClear) ctx.clearRect(0, 0, width, height);
 
+      // BlazePose skeleton connections (simplified for stability)
       const connections: [number, number][] = [
-        [0, 1], [0, 2], [1, 3], [2, 4],
-        [5, 6], [5, 7], [7, 9], [6, 8], [8, 10],
-        [5, 11], [6, 12], [11, 12],
-        [11, 13], [13, 15], [12, 14], [14, 16],
+        [0, 7], [0, 8],                            // nose to ears
+        [11, 12],                                  // shoulders
+        [11, 13], [13, 15],                        // left arm
+        [12, 14], [14, 16],                        // right arm
+        [15, 17], [15, 19], [15, 21],             // left hand
+        [16, 18], [16, 20], [16, 22],             // right hand
+        [11, 23], [12, 24],                        // shoulders to hips
+        [23, 24],                                  // hips
+        [23, 25], [25, 27],                        // left leg
+        [24, 26], [26, 28],                        // right leg
+        [27, 29], [27, 31],                        // left foot
+        [28, 30], [28, 32],                        // right foot
       ];
 
       ctx.strokeStyle = '#00ff88';
@@ -318,15 +327,18 @@ export default function UserUploadClient() {
         drawKeypoints(keypoints, ctx, w, h, true);
 
         if (mediaRecorderRef.current?.state === 'recording') {
+          // Clean keypoints before storing to avoid NaN/Infinity issues
+          const cleanedKeypoints = keypoints.map((kp: Keypoint) => ({
+            x: Number.isFinite(kp.x) ? kp.x : 0,
+            y: Number.isFinite(kp.y) ? kp.y : 0,
+            z: Number.isFinite(kp.z) ? kp.z : 0,
+            score: Number.isFinite(kp.score) ? kp.score : 0,
+            name: kp.name || '',
+          }));
+
           framesRef.current.push({
             timestamp: Date.now(),
-            keypoints: keypoints.map((kp: Keypoint) => ({
-              x: kp.x,
-              y: kp.y,
-              z: kp.z,
-              score: kp.score,
-              name: kp.name,
-            })),
+            keypoints: cleanedKeypoints,
           });
         }
       }
@@ -409,13 +421,40 @@ export default function UserUploadClient() {
   };
 
   const handleConfirm = async () => {
-    if (!recordedBlob || !selectedTask) return;
+    if (!recordedBlob || !selectedTask) {
+      alert('Missing required data. Please try recording again.');
+      return;
+    }
+
+    if (recordedFrames.length === 0) {
+      alert('No pose data recorded. Please try recording again.');
+      return;
+    }
+
     setUploading(true);
 
     try {
+      // Clean pose data to ensure valid JSON (remove NaN, Infinity, etc.)
+      const cleanedFrames = recordedFrames.map(frame => ({
+        timestamp: frame.timestamp,
+        keypoints: frame.keypoints.map(kp => ({
+          x: Number.isFinite(kp.x) ? kp.x : 0,
+          y: Number.isFinite(kp.y) ? kp.y : 0,
+          z: Number.isFinite(kp.z) ? kp.z : 0,
+          score: Number.isFinite(kp.score) ? kp.score : 0,
+          name: kp.name || '',
+        })),
+      }));
+
+      console.log('Uploading submission:', {
+        frames: cleanedFrames.length,
+        taskId: selectedTask.id,
+        videoSize: recordedBlob.size,
+      });
+
       const formData = new FormData();
       formData.append('video', recordedBlob, 'recording.webm');
-      formData.append('poseData', JSON.stringify(recordedFrames));
+      formData.append('poseData', JSON.stringify(cleanedFrames));
       formData.append('taskId', selectedTask.id);
       formData.append('businessId', selectedTask.businessId || '');
       formData.append('contributorId', user?.uid || '');
@@ -426,11 +465,12 @@ export default function UserUploadClient() {
         setUploadSuccess(true);
       } else {
         const err = await res.json();
+        console.error('Server error:', err);
         alert(`Upload failed: ${err.error}`);
       }
     } catch (error) {
       console.error('Upload error:', error);
-      alert('Upload failed. Please try again.');
+      alert(`Upload failed: ${error instanceof Error ? error.message : 'Please try again.'}`);
     } finally {
       setUploading(false);
     }

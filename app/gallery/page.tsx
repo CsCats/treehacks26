@@ -73,18 +73,21 @@ export default function Gallery() {
     if (detectorRef.current || loadingModel) return;
     setLoadingModel(true);
     try {
+      await loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/pose');
       await loadScript('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core');
       await loadScript('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter');
       await loadScript('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl');
       await loadScript('https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection');
 
-      const tf = window.tf;
       const poseDetection = window.poseDetection;
-      await tf.ready();
 
       const detector = await poseDetection.createDetector(
-        poseDetection.SupportedModels.MoveNet,
-        { modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING }
+        poseDetection.SupportedModels.BlazePose,
+        {
+          runtime: 'mediapipe',
+          solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/pose',
+          modelType: 'full',
+        }
       );
       detectorRef.current = detector;
       setModelLoaded(true);
@@ -97,11 +100,20 @@ export default function Gallery() {
 
   const drawKeypoints = (keypoints: Keypoint[], ctx: CanvasRenderingContext2D, w: number, h: number) => {
     ctx.clearRect(0, 0, w, h);
+    // BlazePose skeleton connections (simplified for stability)
     const connections: [number, number][] = [
-      [0,1],[0,2],[1,3],[2,4],
-      [5,6],[5,7],[7,9],[6,8],[8,10],
-      [5,11],[6,12],[11,12],
-      [11,13],[13,15],[12,14],[14,16],
+      [0, 7], [0, 8],                            // nose to ears
+      [11, 12],                                  // shoulders
+      [11, 13], [13, 15],                        // left arm
+      [12, 14], [14, 16],                        // right arm
+      [15, 17], [15, 19], [15, 21],             // left hand
+      [16, 18], [16, 20], [16, 22],             // right hand
+      [11, 23], [12, 24],                        // shoulders to hips
+      [23, 24],                                  // hips
+      [23, 25], [25, 27],                        // left leg
+      [24, 26], [26, 28],                        // right leg
+      [27, 29], [27, 31],                        // left foot
+      [28, 30], [28, 32],                        // right foot
     ];
     ctx.strokeStyle = '#00ff88';
     ctx.lineWidth = 2;
@@ -217,7 +229,7 @@ export default function Gallery() {
               <div>
                 <h3 className="font-medium">TensorFlow Pose Detection</h3>
                 <p className="text-sm text-zinc-500">
-                  MoveNet SinglePose Lightning — runs in-browser on the video
+                  BlazePose 3D (Full) — runs in-browser with depth estimation
                 </p>
               </div>
               <div className="flex items-center gap-3">

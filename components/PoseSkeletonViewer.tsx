@@ -5,21 +5,34 @@ import { OrbitControls } from '@react-three/drei';
 import { useMemo } from 'react';
 import * as THREE from 'three';
 
-// MoveNet keypoint indices
-// 0: nose, 1: left_eye, 2: right_eye, 3: left_ear, 4: right_ear,
-// 5: left_shoulder, 6: right_shoulder, 7: left_elbow, 8: right_elbow,
-// 9: left_wrist, 10: right_wrist, 11: left_hip, 12: right_hip,
-// 13: left_knee, 14: right_knee, 15: left_ankle, 16: right_ankle
+// BlazePose keypoint indices (33 points total, but we use the main 17)
+// 0: nose, 1: left_eye_inner, 2: left_eye, 3: left_eye_outer, 4: right_eye_inner,
+// 5: right_eye, 6: right_eye_outer, 7: left_ear, 8: right_ear,
+// 9: mouth_left, 10: mouth_right, 11: left_shoulder, 12: right_shoulder,
+// 13: left_elbow, 14: right_elbow, 15: left_wrist, 16: right_wrist,
+// 17: left_pinky, 18: right_pinky, 19: left_index, 20: right_index,
+// 21: left_thumb, 22: right_thumb, 23: left_hip, 24: right_hip,
+// 25: left_knee, 26: right_knee, 27: left_ankle, 28: right_ankle,
+// 29: left_heel, 30: right_heel, 31: left_foot_index, 32: right_foot_index
 
+// BlazePose main skeleton connections (simplified for stability)
 const SKELETON_CONNECTIONS: [number, number][] = [
-  [0, 1], [0, 2], [1, 3], [2, 4],       // head
-  [5, 6],                                  // shoulders
-  [5, 7], [7, 9],                          // left arm
-  [6, 8], [8, 10],                         // right arm
-  [5, 11], [6, 12],                        // torso
-  [11, 12],                                // hips
-  [11, 13], [13, 15],                      // left leg
-  [12, 14], [14, 16],                      // right leg
+  // Face outline
+  [0, 7], [0, 8],                            // nose to ears
+  // Shoulders and arms
+  [11, 12],                                  // shoulders
+  [11, 13], [13, 15],                        // left arm
+  [12, 14], [14, 16],                        // right arm
+  [15, 17], [15, 19], [15, 21],             // left hand
+  [16, 18], [16, 20], [16, 22],             // right hand
+  // Torso
+  [11, 23], [12, 24],                        // shoulders to hips
+  [23, 24],                                  // hips
+  // Legs
+  [23, 25], [25, 27],                        // left leg
+  [24, 26], [26, 28],                        // right leg
+  [27, 29], [27, 31],                        // left foot
+  [28, 30], [28, 32],                        // right foot
 ];
 
 const JOINT_COLORS: Record<string, string> = {
@@ -30,10 +43,11 @@ const JOINT_COLORS: Record<string, string> = {
 };
 
 function getJointColor(index: number): string {
-  if (index <= 4) return JOINT_COLORS.head;
-  if (index <= 10) return JOINT_COLORS.arm;
-  if (index <= 12) return JOINT_COLORS.torso;
-  return JOINT_COLORS.leg;
+  // BlazePose keypoint coloring
+  if (index <= 10) return JOINT_COLORS.head;       // face points
+  if (index <= 22) return JOINT_COLORS.arm;        // arms and hands
+  if (index <= 24) return JOINT_COLORS.torso;      // hips/torso
+  return JOINT_COLORS.leg;                          // legs and feet
 }
 
 interface Keypoint {
@@ -56,6 +70,8 @@ function normalizeKeypoints(keypoints: Keypoint[]): THREE.Vector3[] {
   // Normalize to [-1, 1] range centered at origin
   const xs = keypoints.map(k => k.x);
   const ys = keypoints.map(k => k.y);
+  const zs = keypoints.map(k => k.z || 0).filter(z => z !== 0);
+
   const minX = Math.min(...xs);
   const maxX = Math.max(...xs);
   const minY = Math.min(...ys);
@@ -64,11 +80,17 @@ function normalizeKeypoints(keypoints: Keypoint[]): THREE.Vector3[] {
   const rangeY = maxY - minY || 1;
   const scale = Math.max(rangeX, rangeY);
 
+  // Calculate z-scale for depth (BlazePose z values are typically smaller)
+  const minZ = zs.length > 0 ? Math.min(...zs) : 0;
+  const maxZ = zs.length > 0 ? Math.max(...zs) : 0;
+  const rangeZ = maxZ - minZ || 1;
+
   return keypoints.map(k => {
     const nx = ((k.x - minX) / scale - 0.5) * 4;
     const ny = -((k.y - minY) / scale - 0.5) * 4; // flip Y for 3D
-    const nz = (k.z || 0) * 4;
-    return new THREE.Vector3(nx, ny, nz);
+    // Scale z separately and amplify for better 3D effect
+    const nz = ((k.z || 0) - minZ) / rangeZ * 2 - 1; // normalize to [-1, 1]
+    return new THREE.Vector3(nx, ny, nz * 2); // amplify depth by 2x
   });
 }
 
