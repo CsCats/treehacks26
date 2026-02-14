@@ -719,9 +719,7 @@ export default function UserUploadClient() {
               className="h-4 w-4 rounded border-zinc-600 bg-zinc-800 text-blue-500 focus:ring-blue-500"
             />
             <span>
-              {faceBlurEnabled
-                ? 'Blur my face in the recording'
-                : 'Face visible in recording'}
+              Blur my face in the recording
             </span>
           </label>
           {isRecording && (
