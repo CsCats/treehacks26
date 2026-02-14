@@ -484,42 +484,45 @@ export default function UserUploadClient() {
         ← Back to Tasks
       </button>
 
-      <h1 className="mb-1 text-2xl font-bold">Record: {selectedTask?.title}</h1>
-      <p className="mb-6 text-sm text-zinc-400">{selectedTask?.description}</p>
+      <div className="mb-6 flex w-full max-w-5xl flex-col gap-6 lg:flex-row lg:items-start">
+        {/* Left: video + controls */}
+        <div className="flex flex-1 flex-col items-center">
+          <h1 className="mb-1 text-2xl font-bold">Record: {selectedTask?.title}</h1>
+          <p className="mb-4 text-sm text-zinc-400">{selectedTask?.description}</p>
 
-      {loadingModel && (
-        <div className="mb-4 rounded-lg bg-yellow-900/30 px-4 py-2 text-sm text-yellow-300">
-          Loading pose detection model...
-        </div>
-      )}
+          {loadingModel && (
+            <div className="mb-4 rounded-lg bg-yellow-900/30 px-4 py-2 text-sm text-yellow-300">
+              Loading pose detection model...
+            </div>
+          )}
 
-      <div className="relative mb-4">
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          className="w-full max-w-2xl rounded-lg bg-black"
-        />
-        <canvas
-          ref={canvasRef}
-          className="pointer-events-none absolute left-0 top-0 h-full w-full"
-        />
-        {isRecording && (
-          <div className="absolute left-4 top-4 flex items-center gap-2 rounded-full bg-red-600 px-3 py-1 text-sm font-medium">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-white" />
-            Recording
+          <div className="relative mb-4 w-full max-w-2xl">
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              className="w-full rounded-lg bg-black"
+            />
+            <canvas
+              ref={canvasRef}
+              className="pointer-events-none absolute left-0 top-0 h-full w-full max-w-2xl rounded-lg"
+            />
+            {isRecording && (
+              <div className="absolute left-4 top-4 flex items-center gap-2 rounded-full bg-red-600 px-3 py-1 text-sm font-medium">
+                <span className="h-2 w-2 animate-pulse rounded-full bg-white" />
+                Recording
+              </div>
+            )}
           </div>
-        )}
-      </div>
 
-      {modelLoaded && currentKeypoints.length > 0 && (
-        <div className="mb-4">
-          <h3 className="mb-2 text-sm font-medium text-zinc-400">Live 3D Skeleton</h3>
-          <PoseSkeletonViewer keypoints={currentKeypoints} width={400} height={300} />
-        </div>
-      )}
+          {modelLoaded && currentKeypoints.length > 0 && (
+            <div className="mb-4">
+              <h3 className="mb-2 text-sm font-medium text-zinc-400">Live 3D Skeleton</h3>
+              <PoseSkeletonViewer keypoints={currentKeypoints} width={400} height={300} />
+            </div>
+          )}
 
-      <div className="flex gap-4">
+          <div className="flex gap-4">
         {!stream ? (
           <button
             onClick={startCamera}
@@ -553,6 +556,40 @@ export default function UserUploadClient() {
             </button>
           </>
         )}
+          </div>
+        </div>
+
+        {/* Right: requirements (visible while recording) */}
+        <div className="w-full shrink-0 lg:w-80">
+          <div className="sticky top-8 rounded-xl border border-zinc-800 bg-zinc-900/90 p-5">
+            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-zinc-400">
+              Task requirements
+            </h2>
+            <p className="mb-3 text-base font-medium text-white">
+              {selectedTask?.title}
+            </p>
+            {selectedTask?.description && (
+              <p className="mb-3 text-sm text-zinc-400">
+                {selectedTask.description}
+              </p>
+            )}
+            {selectedTask?.requirements ? (
+              <div className="text-sm text-zinc-300">
+                <span className="font-medium text-zinc-400">Requirements:</span>
+                <p className="mt-1 whitespace-pre-wrap">{selectedTask.requirements}</p>
+              </div>
+            ) : (
+              <p className="text-sm text-zinc-500">
+                No specific requirements. Perform the task clearly and fully.
+              </p>
+            )}
+            {(selectedTask?.pricePerApproval ?? 0) > 0 && (
+              <p className="mt-4 text-xs font-medium text-green-400">
+                ${(selectedTask?.pricePerApproval ?? 0).toFixed(2)} per approved video
+              </p>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
