@@ -155,6 +155,28 @@ export default function Home() {
                 </Link>
 
                 <Link
+                  href="/stats"
+                  className="group rounded-2xl border border-zinc-800 bg-zinc-900 p-8 transition hover:border-emerald-500/50 hover:bg-zinc-900/80"
+                >
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-600/20">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="20" x2="18" y2="10" />
+                      <line x1="12" y1="20" x2="12" y2="4" />
+                      <line x1="6" y1="20" x2="6" y2="14" />
+                    </svg>
+                  </div>
+                  <h2 className="mb-2 text-xl font-semibold group-hover:text-emerald-400">
+                    Stats
+                  </h2>
+                  <p className="text-sm text-zinc-400">
+                    View top contributors, earnings leaderboards, and task analytics.
+                  </p>
+                  <div className="mt-4 text-sm font-medium text-emerald-400 group-hover:text-emerald-300">
+                    View Stats →
+                  </div>
+                </Link>
+
+                <Link
                   href="/developer"
                   className="group rounded-2xl border border-zinc-800 bg-zinc-900 p-8 transition hover:border-cyan-500/50 hover:bg-zinc-900/80"
                 >
