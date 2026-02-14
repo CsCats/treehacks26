@@ -26,6 +26,7 @@ interface Submission {
   taskId: string;
   contributorId?: string;
   contributorName?: string;
+  status?: 'pending' | 'approved' | 'rejected';
   videoUrl: string;
   poseUrl: string;
   poseData: PoseFrame[];
@@ -134,6 +135,23 @@ export default function BusinessDashboard() {
     }
   };
 
+  const updateSubmissionStatus = async (submissionId: string, status: 'approved' | 'rejected') => {
+    try {
+      const res = await fetch('/api/submissions', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ submissionId, status }),
+      });
+      if (res.ok) {
+        setSubmissions(prev =>
+          prev.map(s => (s.id === submissionId ? { ...s, status } : s))
+        );
+      }
+    } catch (err) {
+      console.error('Failed to update submission status:', err);
+    }
+  };
+
   const downloadAllData = async () => {
     if (!selectedTask || submissions.length === 0) return;
 
@@ -201,11 +219,13 @@ export default function BusinessDashboard() {
                   key={sub.id}
                   className="rounded-xl border border-zinc-800 bg-zinc-900 overflow-hidden"
                 >
-                  <button
+                  <div
+                    role="button"
+                    tabIndex={0}
                     onClick={() =>
                       setExpandedSubmission(expandedSubmission === sub.id ? null : sub.id)
                     }
-                    className="flex w-full items-center justify-between p-4 text-left hover:bg-zinc-800/50"
+                    className="flex w-full cursor-pointer items-center justify-between p-4 text-left hover:bg-zinc-800/50"
                   >
                     <div className="flex items-center gap-2">
                       <span className="font-medium">Submission #{index + 1}</span>
@@ -214,11 +234,43 @@ export default function BusinessDashboard() {
                           {sub.contributorName}
                         </span>
                       )}
+                      <span className={`flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                        sub.status === 'approved'
+                          ? 'bg-green-500/10 text-green-400'
+                          : sub.status === 'rejected'
+                          ? 'bg-red-500/10 text-red-400'
+                          : 'bg-yellow-500/10 text-yellow-400'
+                      }`}>
+                        <span className={`h-1.5 w-1.5 rounded-full ${
+                          sub.status === 'approved'
+                            ? 'bg-green-400'
+                            : sub.status === 'rejected'
+                            ? 'bg-red-400'
+                            : 'bg-yellow-400'
+                        }`} />
+                        {sub.status === 'approved' ? 'Approved' : sub.status === 'rejected' ? 'Rejected' : 'Pending'}
+                      </span>
                       <span className="text-sm text-zinc-500">
                         {sub.poseData?.length || 0} pose frames
                       </span>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      {(!sub.status || sub.status === 'pending') && (
+                        <>
+                          <button
+                            onClick={e => { e.stopPropagation(); updateSubmissionStatus(sub.id, 'approved'); }}
+                            className="rounded bg-green-600/20 px-3 py-1 text-xs font-medium text-green-400 hover:bg-green-600/30"
+                          >
+                            Approve
+                          </button>
+                          <button
+                            onClick={e => { e.stopPropagation(); updateSubmissionStatus(sub.id, 'rejected'); }}
+                            className="rounded bg-red-600/20 px-3 py-1 text-xs font-medium text-red-400 hover:bg-red-600/30"
+                          >
+                            Reject
+                          </button>
+                        </>
+                      )}
                       <a
                         href={sub.videoUrl}
                         target="_blank"
@@ -241,7 +293,7 @@ export default function BusinessDashboard() {
                         {expandedSubmission === sub.id ? '▲' : '▼'}
                       </span>
                     </div>
-                  </button>
+                  </div>
 
                   {expandedSubmission === sub.id && (
                     <div className="border-t border-zinc-800 p-4">

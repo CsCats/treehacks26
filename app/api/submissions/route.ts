@@ -21,6 +21,8 @@ export async function GET(request: NextRequest) {
 
     const businessId = searchParams.get('businessId');
 
+    const contributorId = searchParams.get('contributorId');
+
     let q;
     if (taskId) {
       q = query(
@@ -31,6 +33,11 @@ export async function GET(request: NextRequest) {
       q = query(
         collection(db, 'submissions'),
         where('businessId', '==', businessId)
+      );
+    } else if (contributorId) {
+      q = query(
+        collection(db, 'submissions'),
+        where('contributorId', '==', contributorId)
       );
     } else {
       q = query(collection(db, 'submissions'));
@@ -91,6 +98,7 @@ export async function POST(request: NextRequest) {
       businessId: businessId || '',
       contributorId: contributorId || '',
       contributorName: contributorName || '',
+      status: 'pending',
       videoUrl,
       poseUrl,
       poseData,
@@ -111,5 +119,34 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error creating submission:', error);
     return NextResponse.json({ error: 'Failed to create submission' }, { status: 500 });
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { submissionId, status } = body;
+
+    if (!submissionId || !status) {
+      return NextResponse.json(
+        { error: 'submissionId and status are required' },
+        { status: 400 }
+      );
+    }
+
+    if (!['pending', 'approved', 'rejected'].includes(status)) {
+      return NextResponse.json(
+        { error: 'status must be pending, approved, or rejected' },
+        { status: 400 }
+      );
+    }
+
+    const submissionRef = doc(db, 'submissions', submissionId);
+    await updateDoc(submissionRef, { status });
+
+    return NextResponse.json({ id: submissionId, status });
+  } catch (error) {
+    console.error('Error updating submission:', error);
+    return NextResponse.json({ error: 'Failed to update submission' }, { status: 500 });
   }
 }
