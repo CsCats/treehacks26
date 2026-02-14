@@ -70,6 +70,8 @@ export default function UserUploadClient() {
   const [recordedBlobUrl, setRecordedBlobUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [posePreviewFrameIndex, setPosePreviewFrameIndex] = useState(0);
+  const [posePlaying, setPosePlaying] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -115,6 +117,21 @@ export default function UserUploadClient() {
       }
     };
   }, [stream]);
+
+  // Frame player: advance one frame while playing, stop at end
+  useEffect(() => {
+    if (!posePlaying || phase !== 'review' || recordedFrames.length === 0) return;
+    const interval = setInterval(() => {
+      setPosePreviewFrameIndex(i => {
+        if (i >= recordedFrames.length - 1) {
+          setPosePlaying(false);
+          return i;
+        }
+        return i + 1;
+      });
+    }, 50);
+    return () => clearInterval(interval);
+  }, [posePlaying, phase, recordedFrames.length]);
 
   const loadPoseModel = useCallback(async () => {
     if (detectorRef.current || loadingModel) return;
@@ -279,6 +296,8 @@ export default function UserUploadClient() {
       const blob = new Blob(chunksRef.current, { type: 'video/webm' });
       setRecordedBlob(blob);
       setRecordedFrames([...framesRef.current]);
+      setPosePreviewFrameIndex(0);
+      setPosePlaying(false);
       stopCamera();
       setPhase('review');
     };
@@ -468,19 +487,68 @@ export default function UserUploadClient() {
           </div>
 
           <div>
-            <h3 className="mb-2 text-sm font-medium text-zinc-400">3D Pose Preview</h3>
+            <h3 className="mb-2 text-sm font-medium text-zinc-400">3D Pose</h3>
             <PoseSkeletonViewer
               keypoints={
                 recordedFrames.length > 0
-                  ? recordedFrames[Math.floor(recordedFrames.length / 2)].keypoints
+                  ? (recordedFrames[posePreviewFrameIndex] ?? recordedFrames[0]).keypoints
                   : []
               }
               width={500}
               height={400}
             />
-            <p className="mt-2 text-xs text-zinc-500">
-              {recordedFrames.length} pose frames captured • Drag to rotate
-            </p>
+            {recordedFrames.length > 0 && (
+              <div className="mt-3 flex flex-col gap-2">
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPosePlaying(false);
+                      setPosePreviewFrameIndex(i => (i <= 0 ? 0 : i - 1));
+                    }}
+                    disabled={posePreviewFrameIndex <= 0}
+                    className="rounded bg-zinc-700 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-40 hover:bg-zinc-600 disabled:hover:bg-zinc-700"
+                  >
+                    Prev
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPosePlaying(p => !p)}
+                    className="rounded bg-zinc-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-zinc-600"
+                  >
+                    {posePlaying ? 'Pause' : 'Play'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPosePlaying(false);
+                      setPosePreviewFrameIndex(i =>
+                        i >= recordedFrames.length - 1 ? i : i + 1
+                      );
+                    }}
+                    disabled={posePreviewFrameIndex >= recordedFrames.length - 1}
+                    className="rounded bg-zinc-700 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-40 hover:bg-zinc-600 disabled:hover:bg-zinc-700"
+                  >
+                    Next
+                  </button>
+                  <span className="text-sm text-zinc-400">
+                    Frame {posePreviewFrameIndex + 1} / {recordedFrames.length}
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={Math.max(0, recordedFrames.length - 1)}
+                  value={posePreviewFrameIndex}
+                  onChange={(e) => {
+                    setPosePlaying(false);
+                    setPosePreviewFrameIndex(Number(e.target.value));
+                  }}
+                  className="h-2 w-full max-w-md cursor-pointer appearance-none rounded-lg bg-zinc-700 accent-blue-500"
+                />
+                <p className="text-xs text-zinc-500">Drag to rotate the 3D view</p>
+              </div>
+            )}
           </div>
         </div>
 
