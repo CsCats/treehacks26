@@ -60,31 +60,45 @@ export async function GET(
 
     const subsSnapshot = await getDocs(subsQuery);
 
+    // Optional: filter by minimum rating via query param
+    const { searchParams } = new URL(request.url);
+    const minRatingParam = searchParams.get('minRating');
+    const minRating = minRatingParam ? Number(minRatingParam) : 0;
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const submissions = subsSnapshot.docs.map(d => {
-      const data = d.data();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result: any = { id: d.id };
+    const submissions = subsSnapshot.docs
+      .filter(d => {
+        if (minRating > 0) {
+          const rating = d.data().rating || 0;
+          return rating >= minRating;
+        }
+        return true;
+      })
+      .map(d => {
+        const data = d.data();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const result: any = { id: d.id };
 
-      if (endpointConfig.includeMetadata) {
-        result.taskId = data.taskId;
-        result.contributorId = data.contributorId || null;
-        result.contributorName = data.contributorName || null;
-        result.status = data.status || 'pending';
-        result.createdAt = data.createdAt || null;
-      }
+        if (endpointConfig.includeMetadata) {
+          result.taskId = data.taskId;
+          result.contributorId = data.contributorId || null;
+          result.contributorName = data.contributorName || null;
+          result.status = data.status || 'pending';
+          result.rating = data.rating || null;
+          result.createdAt = data.createdAt || null;
+        }
 
-      if (endpointConfig.includeVideo) {
-        result.videoUrl = data.videoUrl || null;
-      }
+        if (endpointConfig.includeVideo) {
+          result.videoUrl = data.videoUrl || null;
+        }
 
-      if (endpointConfig.includePose) {
-        result.poseUrl = data.poseUrl || null;
-        result.poseData = data.poseData || null;
-      }
+        if (endpointConfig.includePose) {
+          result.poseUrl = data.poseUrl || null;
+          result.poseData = data.poseData || null;
+        }
 
-      return result;
-    });
+        return result;
+      });
 
     return NextResponse.json({
       endpoint: endpointConfig.name,

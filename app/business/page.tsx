@@ -31,6 +31,7 @@ interface Submission {
   contributorName?: string;
   status?: 'pending' | 'approved' | 'rejected';
   feedback?: string;
+  rating?: number;
   videoUrl: string;
   poseUrl: string;
   poseData: PoseFrame[];
@@ -174,6 +175,26 @@ export default function BusinessDashboard() {
     }
   };
 
+  const rateSubmission = async (submissionId: string, rating: number) => {
+    // Find the current submission to get its status
+    const sub = submissions.find(s => s.id === submissionId);
+    if (!sub) return;
+    try {
+      const res = await fetch('/api/submissions', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ submissionId, status: sub.status || 'pending', rating }),
+      });
+      if (res.ok) {
+        setSubmissions(prev =>
+          prev.map(s => (s.id === submissionId ? { ...s, rating } : s))
+        );
+      }
+    } catch (err) {
+      console.error('Failed to rate submission:', err);
+    }
+  };
+
   const toggleTaskStatus = async (taskId: string, currentStatus: string) => {
     const newStatus = currentStatus === 'closed' ? 'open' : 'closed';
     try {
@@ -293,6 +314,31 @@ export default function BusinessDashboard() {
                       <span className="text-sm text-zinc-500">
                         {sub.poseData?.length || 0} pose frames
                       </span>
+                      {/* Star rating */}
+                      <div className="flex items-center gap-0.5 ml-1" onClick={e => e.stopPropagation()}>
+                        {[1, 2, 3, 4, 5].map(star => (
+                          <button
+                            key={star}
+                            onClick={() => rateSubmission(sub.id, star)}
+                            className="group/star p-0"
+                            title={`Rate ${star} star${star !== 1 ? 's' : ''}`}
+                          >
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill={sub.rating && star <= sub.rating ? '#eab308' : 'none'}
+                              stroke={sub.rating && star <= sub.rating ? '#eab308' : '#52525b'}
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="transition hover:stroke-yellow-400 hover:fill-yellow-400/30"
+                            >
+                              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                            </svg>
+                          </button>
+                        ))}
+                      </div>
                     </div>
                     <div className="flex items-center gap-2">
                       {(!sub.status || sub.status === 'pending') && rejectingId !== sub.id && (
