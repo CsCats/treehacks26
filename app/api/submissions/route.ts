@@ -6,7 +6,6 @@ import {
   getDocs,
   query,
   where,
-  orderBy,
   serverTimestamp,
   doc,
   updateDoc,
@@ -24,11 +23,10 @@ export async function GET(request: NextRequest) {
     if (taskId) {
       q = query(
         collection(db, 'submissions'),
-        where('taskId', '==', taskId),
-        orderBy('createdAt', 'desc')
+        where('taskId', '==', taskId)
       );
     } else {
-      q = query(collection(db, 'submissions'), orderBy('createdAt', 'desc'));
+      q = query(collection(db, 'submissions'));
     }
 
     const snapshot = await getDocs(q);
