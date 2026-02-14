@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function BusinessView() {
+  const router = useRouter();
   const [prompt, setPrompt] = useState('');
   const [requirements, setRequirements] = useState({
     task: 'folding laundry',
@@ -15,7 +17,7 @@ export default function BusinessView() {
     e.preventDefault();
     console.log('Prompt:', prompt);
     console.log('Requirements:', requirements);
-    // TODO: Send to backend
+    router.push('/gallery');
   };
 
   return (
