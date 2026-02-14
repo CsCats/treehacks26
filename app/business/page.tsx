@@ -78,6 +78,9 @@ export default function BusinessDashboard() {
   const [newDeadline, setNewDeadline] = useState('');
   const [newWebhookUrl, setNewWebhookUrl] = useState('');
   const [creating, setCreating] = useState(false);
+  const [reviewScore, setReviewScore] = useState<number | null>(null);
+  const [reviewFeedback, setReviewFeedback] = useState<string | null>(null);
+  const [reviewingDescription, setReviewingDescription] = useState(false);
 
   // Edit task
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
@@ -594,6 +597,88 @@ export default function BusinessDashboard() {
                   rows={2}
                   className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-white placeholder-zinc-500 focus:border-blue-500 focus:outline-none"
                 />
+                <div className="mt-2 flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!newTitle.trim() && !newDescription.trim()) {
+                        alert('Add at least a title or description to review.');
+                        return;
+                      }
+                      setReviewingDescription(true);
+                      setReviewScore(null);
+                      setReviewFeedback(null);
+                      try {
+                        const res = await fetch('/api/tasks/review-description', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            title: newTitle,
+                            description: newDescription,
+                            requirements: newRequirements,
+                          }),
+                        });
+                        const data = await res.json();
+                        if (res.ok) {
+                          setReviewScore(data.score);
+                          setReviewFeedback(data.feedback);
+                        } else {
+                          alert(data.error || data.detail || 'Review failed');
+                        }
+                      } catch (err) {
+                        console.error(err);
+                        alert('Review failed. Is Ollama running? Run: ollama pull llama3.1');
+                      } finally {
+                        setReviewingDescription(false);
+                      }
+                    }}
+                    disabled={reviewingDescription}
+                    className="rounded-lg border border-zinc-600 bg-zinc-800 px-3 py-1.5 text-sm font-medium text-zinc-300 hover:bg-zinc-700 disabled:opacity-50"
+                  >
+                    {reviewingDescription ? 'Reviewing…' : 'Review with AI'}
+                  </button>
+                  {reviewScore != null && (
+                    <span className="text-xs text-zinc-500">
+                      AI score: {reviewScore}/5
+                    </span>
+                  )}
+                </div>
+                {reviewScore != null && reviewFeedback != null && (
+                  <div
+                    className={`mt-3 rounded-lg border px-3 py-2.5 text-sm ${
+                      reviewScore >= 4
+                        ? 'border-emerald-800/60 bg-emerald-950/40 text-emerald-200'
+                        : reviewScore >= 3
+                          ? 'border-amber-800/60 bg-amber-950/40 text-amber-200'
+                          : 'border-red-900/60 bg-red-950/40 text-red-200'
+                    }`}
+                  >
+                    <div className="mb-2 flex gap-0.5">
+                      {[1, 2, 3, 4, 5].map(i => (
+                        <div
+                          key={i}
+                          className={`h-2 flex-1 rounded-sm ${
+                            i <= reviewScore
+                              ? reviewScore >= 4
+                                ? 'bg-emerald-500'
+                                : reviewScore >= 3
+                                  ? 'bg-amber-500'
+                                  : 'bg-red-500'
+                              : 'bg-zinc-700'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <p className="font-medium">
+                      {reviewScore >= 4
+                        ? 'Description looks good'
+                        : reviewScore >= 3
+                          ? 'Could be clearer'
+                          : 'Needs improvement'}
+                    </p>
+                    <p className="mt-0.5 text-zinc-400">{reviewFeedback}</p>
+                  </div>
+                )}
               </div>
               <div>
                 <label className="mb-1 block text-sm font-medium text-zinc-400">
