@@ -312,7 +312,7 @@ export default function BusinessDashboard() {
   // --- SUBMISSIONS VIEW ---
   if (view === 'submissions' && selectedTask) {
     return (
-      <div className="min-h-screen bg-zinc-950 p-8 text-white">
+      <div className="min-h-screen p-8 text-white">
         <div className="mx-auto max-w-6xl">
           <button
             onClick={() => { setView('tasks'); setSelectedTask(null); setSubmissions([]); }}
@@ -531,7 +531,7 @@ export default function BusinessDashboard() {
 
   // --- TASKS LIST VIEW ---
   return (
-    <div className="min-h-screen bg-zinc-950 p-8 text-white">
+    <div className="min-h-screen p-8 text-white">
       <div className="mx-auto max-w-4xl">
         <a href="/" className="mb-6 inline-block text-sm text-zinc-500 hover:text-zinc-300">
           ← Back to Home
@@ -539,14 +539,14 @@ export default function BusinessDashboard() {
 
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Business Dashboard</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Business dashboard</h1>
             <p className="mt-1 text-zinc-400">
               Create tasks and manage crowdsourced training data
             </p>
           </div>
           <button
             onClick={() => setShowCreateForm(!showCreateForm)}
-            className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white hover:bg-blue-700"
+            className="rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-2.5 font-medium text-white shadow-lg shadow-blue-500/20 transition hover:from-blue-400 hover:to-blue-500"
           >
             {showCreateForm ? 'Cancel' : '+ New Task'}
           </button>

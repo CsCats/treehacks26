@@ -21,46 +21,41 @@ export default function BusinessView() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-8">
-      <h1 className="mb-8 text-2xl font-semibold">Create Training Task Prompt</h1>
-      
-      <form onSubmit={handleSubmit} className="w-full max-w-2xl space-y-6">
-        <div>
-          <label className="block mb-2 text-sm font-medium">Task Prompt</label>
-          <textarea
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Describe the task you want users to record..."
-            className="w-full rounded border border-gray-300 p-3"
-            rows={6}
-          />
-        </div>
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background p-8 text-foreground">
+      <div className="w-full max-w-2xl">
+        <h1 className="mb-2 text-3xl font-bold tracking-tight">Create training task</h1>
+        <p className="mb-8 text-zinc-400">Describe the task you want contributors to record</p>
 
-        <div className="rounded border border-gray-200 bg-gray-50 p-4">
-          <h2 className="mb-4 font-semibold text-black">Example Requirements</h2>
-          <div className="space-y-2 text-sm text-black">
-            <div>
-              <span className="font-medium">Task:</span> {requirements.task}
-            </div>
-            <div>
-              <span className="font-medium">Duration:</span> {requirements.duration}
-            </div>
-            <div>
-              <span className="font-medium">Quality:</span> {requirements.quality}
-            </div>
-            <div>
-              <span className="font-medium">Camera Angle:</span> {requirements.angle}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label className="mb-2 block text-sm font-medium text-zinc-300">Task prompt</label>
+            <textarea
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              placeholder="Describe the task you want users to record…"
+              className="w-full rounded-xl border border-zinc-700 bg-zinc-800/80 px-4 py-3 text-white placeholder-zinc-500 transition focus:border-blue-500"
+              rows={6}
+            />
+          </div>
+
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
+            <h2 className="mb-4 font-semibold text-zinc-200">Example requirements</h2>
+            <div className="space-y-2 text-sm text-zinc-400">
+              <div><span className="font-medium text-zinc-300">Task:</span> {requirements.task}</div>
+              <div><span className="font-medium text-zinc-300">Duration:</span> {requirements.duration}</div>
+              <div><span className="font-medium text-zinc-300">Quality:</span> {requirements.quality}</div>
+              <div><span className="font-medium text-zinc-300">Camera angle:</span> {requirements.angle}</div>
             </div>
           </div>
-        </div>
 
-        <button
-          type="submit"
-          className="w-full rounded bg-blue-500 px-6 py-2 text-white hover:bg-blue-600"
-        >
-          Post Task
-        </button>
-      </form>
+          <button
+            type="submit"
+            className="w-full rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 py-3.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition hover:from-blue-400 hover:to-purple-500"
+          >
+            Post task
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

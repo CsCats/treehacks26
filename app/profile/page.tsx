@@ -98,8 +98,8 @@ export default function ProfilePage() {
 
   if (authLoading || loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-950">
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-zinc-700 border-t-white" />
+      <div className="flex min-h-screen items-center justify-center bg-transparent">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-700 border-t-blue-500" />
       </div>
     );
   }
@@ -119,10 +119,10 @@ export default function ProfilePage() {
     : 'Unknown';
 
   return (
-    <div className="min-h-screen bg-zinc-950 p-8 text-white">
+    <div className="min-h-screen p-8 text-white">
       <div className="mx-auto max-w-3xl">
         {/* Profile Header */}
-        <div className="mb-8 rounded-2xl border border-zinc-800 bg-zinc-900 p-8">
+        <div className="mb-8 rounded-2xl border border-zinc-800 bg-zinc-900/80 p-8">
           <div className="flex items-start gap-5">
             <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-2xl font-bold">
               {(profileData.displayName || profileData.email)[0].toUpperCase()}

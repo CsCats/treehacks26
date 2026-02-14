@@ -27,9 +27,9 @@ const submissions: Submission[] = [
 ];
 
 const statusStyles: Record<string, string> = {
-  approved: 'bg-green-100 text-green-700',
-  pending: 'bg-yellow-100 text-yellow-700',
-  rejected: 'bg-red-100 text-red-700',
+  approved: 'bg-green-500/15 text-green-400',
+  pending: 'bg-yellow-500/15 text-yellow-400',
+  rejected: 'bg-red-500/15 text-red-400',
 };
 
 // Load a script tag dynamically
@@ -177,7 +177,7 @@ export default function Gallery() {
   // --- EXPANDED VIDEO VIEW ---
   if (selected) {
     return (
-      <div className="min-h-screen bg-zinc-950 p-8 text-white">
+      <div className="min-h-screen p-8 text-white">
         <div className="mx-auto max-w-4xl">
           <button
             onClick={() => { handleStopPose(); setSelectedId(null); }}
@@ -273,14 +273,14 @@ export default function Gallery() {
 
   // --- GALLERY GRID VIEW ---
   return (
-    <div className="min-h-screen bg-zinc-950 p-8 text-white">
+    <div className="min-h-screen p-8 text-white">
       <div className="mx-auto max-w-6xl">
         <a href="/businessView" className="mb-6 inline-block text-sm text-zinc-500 hover:text-zinc-300">
           ← Back
         </a>
 
         <div className="mb-8">
-          <h1 className="text-3xl font-bold">Submissions Gallery</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Submissions gallery</h1>
           <p className="mt-2 text-zinc-400">
             Task: <span className="font-medium text-white">Folding Laundry</span>
           </p>

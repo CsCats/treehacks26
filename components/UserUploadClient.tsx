@@ -6,7 +6,7 @@ import { useAuth } from '@/lib/AuthContext';
 
 const PoseSkeletonViewer = dynamic(() => import('@/components/PoseSkeletonViewer'), {
   ssr: false,
-  loading: () => <div className="w-[500px] h-[400px] bg-zinc-900 rounded-lg animate-pulse" />,
+  loading: () => <div className="w-[500px] h-[400px] bg-zinc-200 dark:bg-zinc-900 rounded-lg animate-pulse" />,
 });
 
 interface Task {
@@ -496,15 +496,15 @@ export default function UserUploadClient() {
   // --- TASK SELECTION PHASE ---
   if (phase === 'select-task') {
     return (
-      <div className="flex min-h-screen flex-col items-center bg-zinc-950 p-8 text-white">
-        <a href="/" className="mb-6 text-sm text-zinc-500 hover:text-zinc-300 self-start">
+      <div className="flex min-h-screen flex-col items-center bg-zinc-50 p-8 text-zinc-900 dark:bg-zinc-950 dark:text-white">
+        <a href="/" className="mb-6 text-sm text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 self-start">
           ← Back to Home
         </a>
         <h1 className="mb-2 text-3xl font-bold">Upload Training Footage</h1>
-        <p className="mb-8 text-zinc-400">Select a task to contribute training data for</p>
+        <p className="mb-8 text-zinc-500 dark:text-zinc-400">Select a task to contribute training data for</p>
 
         {tasks.length === 0 ? (
-          <div className="text-zinc-500">
+          <div className="text-zinc-600 dark:text-zinc-500">
             No tasks available yet. Businesses need to create tasks first.
           </div>
         ) : (
@@ -526,12 +526,12 @@ export default function UserUploadClient() {
                   disabled={isDisabled}
                   className={`rounded-xl border p-6 text-left transition ${
                     isDisabled
-                      ? 'border-zinc-800/50 bg-zinc-900/50 opacity-60 cursor-not-allowed'
-                      : 'border-zinc-800 bg-zinc-900 hover:border-zinc-600 hover:bg-zinc-800'
+                      ? 'border-zinc-300 bg-zinc-100 opacity-60 cursor-not-allowed dark:border-zinc-800/50 dark:bg-zinc-900/50'
+                      : 'border-zinc-200 bg-white hover:border-zinc-300 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-600 dark:hover:bg-zinc-800'
                   }`}
                 >
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="text-lg font-semibold text-white">{task.title}</h3>
+                    <h3 className="text-lg font-semibold text-zinc-900 dark:text-white">{task.title}</h3>
                     {task.businessName && (
                       <span className="rounded-full bg-purple-600/20 px-2.5 py-0.5 text-xs font-medium text-purple-400">
                         {task.businessName}
@@ -552,13 +552,13 @@ export default function UserUploadClient() {
                       {isClosed ? 'Closed' : isExpired ? 'Expired' : 'Open'}
                     </span>
                   </div>
-                  <p className="mt-1 text-sm text-zinc-400">{task.description}</p>
+                  <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{task.description}</p>
                   {task.requirements && (
                     <p className="mt-2 text-xs text-zinc-500">
-                      <span className="font-medium text-zinc-400">Requirements:</span> {task.requirements}
+                      <span className="font-medium text-zinc-600 dark:text-zinc-400">Requirements:</span> {task.requirements}
                     </p>
                   )}
-                  <div className="mt-2 flex items-center gap-3 text-xs text-zinc-600">
+                  <div className="mt-2 flex items-center gap-3 text-xs text-zinc-500 dark:text-zinc-600">
                     <span>{task.submissionCount || 0} submissions</span>
                     {task.deadline && (
                       <span>
@@ -584,11 +584,11 @@ export default function UserUploadClient() {
   if (phase === 'review') {
     if (uploadSuccess) {
       return (
-        <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-950 p-8 text-white">
+        <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-50 p-8 text-zinc-900 dark:bg-zinc-950 dark:text-white">
           <div className="text-center">
             <div className="mb-4 text-5xl">✓</div>
-            <h2 className="mb-2 text-2xl font-bold text-green-400">Upload Successful!</h2>
-            <p className="mb-6 text-zinc-400">
+            <h2 className="mb-2 text-2xl font-bold text-green-600 dark:text-green-400">Upload Successful!</h2>
+            <p className="mb-6 text-zinc-500 dark:text-zinc-400">
               Your training footage has been submitted for &quot;{selectedTask?.title}&quot;
             </p>
             <button
@@ -603,26 +603,26 @@ export default function UserUploadClient() {
     }
 
     return (
-      <div className="flex min-h-screen flex-col items-center bg-zinc-950 p-8 text-white">
+      <div className="flex min-h-screen flex-col items-center bg-zinc-50 p-8 text-zinc-900 dark:bg-zinc-950 dark:text-white">
         <h1 className="mb-2 text-2xl font-bold">Review Your Recording</h1>
-        <p className="mb-6 text-zinc-400">
-          Task: <span className="text-white">{selectedTask?.title}</span>
+        <p className="mb-6 text-zinc-500 dark:text-zinc-400">
+          Task: <span className="font-medium text-zinc-900 dark:text-white">{selectedTask?.title}</span>
         </p>
 
         <div className="flex flex-col items-center gap-6 lg:flex-row lg:items-start">
           <div>
-            <h3 className="mb-2 text-sm font-medium text-zinc-400">Recorded Video</h3>
+            <h3 className="mb-2 text-sm font-medium text-zinc-600 dark:text-zinc-400">Recorded Video</h3>
             {recordedBlobUrl && (
               <video
                 src={recordedBlobUrl}
                 controls
-                className="w-[500px] rounded-lg bg-black"
+                className="w-[500px] rounded-lg bg-zinc-200 dark:bg-black"
               />
             )}
           </div>
 
           <div>
-            <h3 className="mb-2 text-sm font-medium text-zinc-400">3D Pose</h3>
+            <h3 className="mb-2 text-sm font-medium text-zinc-600 dark:text-zinc-400">3D Pose</h3>
             <PoseSkeletonViewer
               keypoints={
                 recordedFrames.length > 0
@@ -642,14 +642,14 @@ export default function UserUploadClient() {
                       setPosePreviewFrameIndex(i => (i <= 0 ? 0 : i - 1));
                     }}
                     disabled={posePreviewFrameIndex <= 0}
-                    className="rounded bg-zinc-700 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-40 hover:bg-zinc-600 disabled:hover:bg-zinc-700"
+                    className="rounded bg-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-800 disabled:opacity-40 hover:bg-zinc-300 dark:bg-zinc-700 dark:text-white dark:hover:bg-zinc-600 dark:disabled:hover:bg-zinc-700"
                   >
                     Prev
                   </button>
                   <button
                     type="button"
                     onClick={() => setPosePlaying(p => !p)}
-                    className="rounded bg-zinc-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-zinc-600"
+                    className="rounded bg-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-800 hover:bg-zinc-300 dark:bg-zinc-700 dark:text-white dark:hover:bg-zinc-600"
                   >
                     {posePlaying ? 'Pause' : 'Play'}
                   </button>
@@ -662,11 +662,11 @@ export default function UserUploadClient() {
                       );
                     }}
                     disabled={posePreviewFrameIndex >= recordedFrames.length - 1}
-                    className="rounded bg-zinc-700 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-40 hover:bg-zinc-600 disabled:hover:bg-zinc-700"
+                    className="rounded bg-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-800 disabled:opacity-40 hover:bg-zinc-300 dark:bg-zinc-700 dark:text-white dark:hover:bg-zinc-600 dark:disabled:hover:bg-zinc-700"
                   >
                     Next
                   </button>
-                  <span className="text-sm text-zinc-400">
+                  <span className="text-sm text-zinc-500 dark:text-zinc-400">
                     Frame {posePreviewFrameIndex + 1} / {recordedFrames.length}
                   </span>
                 </div>
@@ -679,7 +679,7 @@ export default function UserUploadClient() {
                     setPosePlaying(false);
                     setPosePreviewFrameIndex(Number(e.target.value));
                   }}
-                  className="h-2 w-full max-w-md cursor-pointer appearance-none rounded-lg bg-zinc-700 accent-blue-500"
+                  className="h-2 w-full max-w-md cursor-pointer appearance-none rounded-lg bg-zinc-200 accent-blue-500 dark:bg-zinc-700"
                 />
                 <p className="text-xs text-zinc-500">Drag to rotate the 3D view</p>
               </div>
@@ -712,10 +712,10 @@ export default function UserUploadClient() {
 
   // --- CAMERA / RECORDING PHASE ---
   return (
-    <div className="flex min-h-screen flex-col items-center bg-zinc-950 p-8 text-white">
+    <div className="flex min-h-screen flex-col items-center bg-zinc-50 p-8 text-zinc-900 dark:bg-zinc-950 dark:text-white">
       <button
         onClick={() => { stopCamera(); setPhase('select-task'); }}
-        className="mb-6 text-sm text-zinc-500 hover:text-zinc-300 self-start"
+        className="mb-6 text-sm text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 self-start"
       >
         ← Back to Tasks
       </button>
@@ -724,10 +724,10 @@ export default function UserUploadClient() {
         {/* Left: video + controls */}
         <div className="flex flex-1 flex-col items-center">
           <h1 className="mb-1 text-2xl font-bold">Record: {selectedTask?.title}</h1>
-          <p className="mb-4 text-sm text-zinc-400">{selectedTask?.description}</p>
+          <p className="mb-4 text-sm text-zinc-500 dark:text-zinc-400">{selectedTask?.description}</p>
 
           {loadingModel && (
-            <div className="mb-4 rounded-lg bg-yellow-900/30 px-4 py-2 text-sm text-yellow-300">
+            <div className="mb-4 rounded-lg bg-yellow-100 px-4 py-2 text-sm text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
               Loading pose detection model...
             </div>
           )}
@@ -737,7 +737,7 @@ export default function UserUploadClient() {
               ref={videoRef}
               autoPlay
               playsInline
-              className="w-full rounded-lg bg-black"
+              className="w-full rounded-lg bg-zinc-200 dark:bg-black"
             />
             <canvas
               ref={canvasRef}
@@ -750,20 +750,20 @@ export default function UserUploadClient() {
               </div>
             )}
           </div>
-          <label className="mb-4 flex items-center gap-2 text-sm text-zinc-400">
+          <label className="mb-4 flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
             <input
               type="checkbox"
               checked={faceBlurEnabled}
               onChange={(e) => setFaceBlurEnabled(e.target.checked)}
               disabled={isRecording}
-              className="h-4 w-4 rounded border-zinc-600 bg-zinc-800 text-blue-500 focus:ring-blue-500"
+              className="h-4 w-4 rounded border-zinc-400 bg-zinc-100 text-blue-500 focus:ring-blue-500 dark:border-zinc-600 dark:bg-zinc-800"
             />
             <span>
               Blur my face in the recording
             </span>
           </label>
           {isRecording && (
-            <p className="mb-4 text-xs text-zinc-500">
+            <p className="mb-4 text-xs text-zinc-600 dark:text-zinc-500">
               {faceBlurEnabled
                 ? 'Your face is blurred in this recording.'
                 : 'Face blur is off for this recording.'}
@@ -772,7 +772,7 @@ export default function UserUploadClient() {
 
           {modelLoaded && currentKeypoints.length > 0 && (
             <div className="mb-4">
-              <h3 className="mb-2 text-sm font-medium text-zinc-400">Live 3D Skeleton</h3>
+              <h3 className="mb-2 text-sm font-medium text-zinc-600 dark:text-zinc-400">Live 3D Skeleton</h3>
               <PoseSkeletonViewer keypoints={currentKeypoints} width={400} height={300} />
             </div>
           )}
@@ -816,21 +816,21 @@ export default function UserUploadClient() {
 
         {/* Right: requirements (visible while recording) */}
         <div className="w-full shrink-0 lg:w-80">
-          <div className="sticky top-8 rounded-xl border border-zinc-800 bg-zinc-900/90 p-5">
-            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-zinc-400">
+          <div className="sticky top-8 rounded-xl border border-zinc-200 bg-white/90 p-5 dark:border-zinc-800 dark:bg-zinc-900/90">
+            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
               Task requirements
             </h2>
-            <p className="mb-3 text-base font-medium text-white">
+            <p className="mb-3 text-base font-medium text-zinc-900 dark:text-white">
               {selectedTask?.title}
             </p>
             {selectedTask?.description && (
-              <p className="mb-3 text-sm text-zinc-400">
+              <p className="mb-3 text-sm text-zinc-500 dark:text-zinc-400">
                 {selectedTask.description}
               </p>
             )}
             {selectedTask?.requirements ? (
-              <div className="text-sm text-zinc-300">
-                <span className="font-medium text-zinc-400">Requirements:</span>
+              <div className="text-sm text-zinc-600 dark:text-zinc-300">
+                <span className="font-medium text-zinc-600 dark:text-zinc-400">Requirements:</span>
                 <p className="mt-1 whitespace-pre-wrap">{selectedTask.requirements}</p>
               </div>
             ) : (
