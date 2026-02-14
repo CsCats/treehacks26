@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { title, description, requirements, businessId, businessName } = body;
+    const { title, description, requirements, businessId, businessName, pricePerApproval } = body;
 
     if (!title || !description || !businessId) {
       return NextResponse.json(
@@ -44,11 +44,12 @@ export async function POST(request: NextRequest) {
       requirements: requirements || '',
       businessId,
       businessName: businessName || '',
+      pricePerApproval: Number(pricePerApproval) || 0,
       submissionCount: 0,
       createdAt: serverTimestamp(),
     });
 
-    return NextResponse.json({ id: docRef.id, title, description, requirements, businessId, businessName });
+    return NextResponse.json({ id: docRef.id, title, description, requirements, businessId, businessName, pricePerApproval: Number(pricePerApproval) || 0 });
   } catch (error) {
     console.error('Error creating task:', error);
     return NextResponse.json({ error: 'Failed to create task' }, { status: 500 });

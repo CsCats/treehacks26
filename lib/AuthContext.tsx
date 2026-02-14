@@ -18,6 +18,7 @@ interface UserProfile {
   email: string;
   role: UserRole;
   displayName?: string;
+  balance: number;
   createdAt: string;
 }
 
@@ -28,6 +29,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, role: UserRole, displayName: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -37,6 +39,7 @@ const AuthContext = createContext<AuthContextType>({
   signUp: async () => {},
   signIn: async () => {},
   signOut: async () => {},
+  refreshProfile: async () => {},
 });
 
 export function useAuth() {
@@ -79,6 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email,
       role,
       displayName,
+      balance: 0,
       createdAt: new Date().toISOString(),
     };
     await setDoc(doc(db, 'users', cred.user.uid), userProfile);
@@ -93,6 +97,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const refreshProfile = async () => {
+    if (user) {
+      const profileDoc = await getDoc(doc(db, 'users', user.uid));
+      if (profileDoc.exists()) {
+        setProfile(profileDoc.data() as UserProfile);
+      }
+    }
+  };
+
   const signOut = async () => {
     await firebaseSignOut(auth);
     setUser(null);
@@ -100,7 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, profile, loading, signUp, signIn, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );

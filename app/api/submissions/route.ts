@@ -4,6 +4,7 @@ import {
   collection,
   addDoc,
   getDocs,
+  getDoc,
   query,
   where,
   serverTimestamp,
@@ -142,6 +143,71 @@ export async function PATCH(request: NextRequest) {
     }
 
     const submissionRef = doc(db, 'submissions', submissionId);
+
+    // If approving, handle the payout
+    if (status === 'approved') {
+      const submissionSnap = await getDoc(submissionRef);
+      if (!submissionSnap.exists()) {
+        return NextResponse.json({ error: 'Submission not found' }, { status: 404 });
+      }
+      const submissionData = submissionSnap.data();
+
+      // Get the task to find the price
+      const taskSnap = await getDoc(doc(db, 'tasks', submissionData.taskId));
+      const price = taskSnap.exists() ? (taskSnap.data().pricePerApproval || 0) : 0;
+
+      if (price > 0) {
+        const businessId = submissionData.businessId;
+        const contributorId = submissionData.contributorId;
+
+        // Check business has enough balance
+        const businessDoc = await getDoc(doc(db, 'users', businessId));
+        const businessBalance = businessDoc.exists() ? (businessDoc.data().balance || 0) : 0;
+
+        if (businessBalance < price) {
+          return NextResponse.json(
+            { error: `Insufficient balance. You need $${price.toFixed(2)} but have $${businessBalance.toFixed(2)}. Add funds in Billing.` },
+            { status: 400 }
+          );
+        }
+
+        // Deduct from business
+        await updateDoc(doc(db, 'users', businessId), {
+          balance: increment(-price),
+        });
+
+        // Credit contributor
+        if (contributorId) {
+          await updateDoc(doc(db, 'users', contributorId), {
+            balance: increment(price),
+          });
+        }
+
+        // Record transactions
+        await addDoc(collection(db, 'transactions'), {
+          userId: businessId,
+          type: 'payout',
+          amount: -price,
+          description: `Approved submission by ${submissionData.contributorName || 'contributor'}`,
+          submissionId,
+          taskId: submissionData.taskId,
+          createdAt: serverTimestamp(),
+        });
+
+        if (contributorId) {
+          await addDoc(collection(db, 'transactions'), {
+            userId: contributorId,
+            type: 'earning',
+            amount: price,
+            description: `Approved submission for task`,
+            submissionId,
+            taskId: submissionData.taskId,
+            createdAt: serverTimestamp(),
+          });
+        }
+      }
+    }
+
     await updateDoc(submissionRef, { status });
 
     return NextResponse.json({ id: submissionId, status });

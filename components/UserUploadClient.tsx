@@ -16,6 +16,7 @@ interface Task {
   requirements: string;
   businessId: string;
   businessName: string;
+  pricePerApproval: number;
   submissionCount: number;
 }
 
@@ -362,11 +363,16 @@ export default function UserUploadClient() {
                 }}
                 className="rounded-xl border border-zinc-800 bg-zinc-900 p-6 text-left transition hover:border-zinc-600 hover:bg-zinc-800"
               >
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <h3 className="text-lg font-semibold text-white">{task.title}</h3>
                   {task.businessName && (
                     <span className="rounded-full bg-purple-600/20 px-2.5 py-0.5 text-xs font-medium text-purple-400">
                       {task.businessName}
+                    </span>
+                  )}
+                  {task.pricePerApproval > 0 && (
+                    <span className="rounded-full bg-green-500/10 px-2.5 py-0.5 text-xs font-medium text-green-400">
+                      ${task.pricePerApproval.toFixed(2)}/video
                     </span>
                   )}
                 </div>

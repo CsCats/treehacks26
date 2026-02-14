@@ -17,6 +17,7 @@ interface Task {
   requirements: string;
   businessId: string;
   businessName: string;
+  pricePerApproval: number;
   submissionCount: number;
   createdAt?: { seconds: number };
 }
@@ -50,7 +51,7 @@ type View = 'tasks' | 'submissions';
 
 export default function BusinessDashboard() {
   const router = useRouter();
-  const { user, profile, loading: authLoading } = useAuth();
+  const { user, profile, loading: authLoading, refreshProfile } = useAuth();
 
   const [view, setView] = useState<View>('tasks');
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -64,6 +65,7 @@ export default function BusinessDashboard() {
   const [newTitle, setNewTitle] = useState('');
   const [newDescription, setNewDescription] = useState('');
   const [newRequirements, setNewRequirements] = useState('');
+  const [newPrice, setNewPrice] = useState('');
   const [creating, setCreating] = useState(false);
 
   useEffect(() => {
@@ -100,6 +102,7 @@ export default function BusinessDashboard() {
           title: newTitle,
           description: newDescription,
           requirements: newRequirements,
+          pricePerApproval: parseFloat(newPrice) || 0,
           businessId: user!.uid,
           businessName: profile?.displayName || '',
         }),
@@ -109,6 +112,7 @@ export default function BusinessDashboard() {
         setNewTitle('');
         setNewDescription('');
         setNewRequirements('');
+        setNewPrice('');
         setShowCreateForm(false);
         fetchTasks();
       }
@@ -146,6 +150,12 @@ export default function BusinessDashboard() {
         setSubmissions(prev =>
           prev.map(s => (s.id === submissionId ? { ...s, status } : s))
         );
+        if (status === 'approved') {
+          await refreshProfile();
+        }
+      } else {
+        const err = await res.json();
+        alert(err.error || 'Failed to update submission');
       }
     } catch (err) {
       console.error('Failed to update submission status:', err);
@@ -404,6 +414,24 @@ export default function BusinessDashboard() {
                   className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-white placeholder-zinc-500 focus:border-blue-500 focus:outline-none"
                 />
               </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-zinc-400">
+                  Price per Approved Video ($)
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500">$</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={newPrice}
+                    onChange={e => setNewPrice(e.target.value)}
+                    placeholder="5.00"
+                    className="w-full rounded-lg border border-zinc-700 bg-zinc-800 py-2 pl-7 pr-4 text-white placeholder-zinc-500 focus:border-blue-500 focus:outline-none"
+                  />
+                </div>
+                <p className="mt-1 text-xs text-zinc-600">Amount paid to contributor per approved submission</p>
+              </div>
               <button
                 type="submit"
                 disabled={creating}
@@ -429,7 +457,14 @@ export default function BusinessDashboard() {
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold">{task.title}</h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-lg font-semibold">{task.title}</h3>
+                      {task.pricePerApproval > 0 && (
+                        <span className="rounded-full bg-green-500/10 px-2.5 py-0.5 text-xs font-medium text-green-400">
+                          ${task.pricePerApproval.toFixed(2)}/video
+                        </span>
+                      )}
+                    </div>
                     <p className="mt-1 text-sm text-zinc-400">{task.description}</p>
                     {task.requirements && (
                       <p className="mt-2 text-xs text-zinc-500">

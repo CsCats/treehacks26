@@ -78,29 +78,75 @@ export default function Home() {
               </>
             )}
 
-            {profile.role === 'business' && (
+            {profile.role === 'contributor' && (
               <Link
-                href="/business"
-                className="group rounded-2xl border border-zinc-800 bg-zinc-900 p-8 transition hover:border-purple-500/50 hover:bg-zinc-900/80"
+                href="/earnings"
+                className="group rounded-2xl border border-zinc-800 bg-zinc-900 p-8 transition hover:border-yellow-500/50 hover:bg-zinc-900/80"
               >
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-purple-600/20">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a855f7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="3" width="7" height="7" />
-                    <rect x="14" y="3" width="7" height="7" />
-                    <rect x="14" y="14" width="7" height="7" />
-                    <rect x="3" y="14" width="7" height="7" />
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-yellow-600/20">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#eab308" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="12" y1="1" x2="12" y2="23" />
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
                   </svg>
                 </div>
-                <h2 className="mb-2 text-xl font-semibold group-hover:text-purple-400">
-                  Open Dashboard
+                <h2 className="mb-2 text-xl font-semibold group-hover:text-yellow-400">
+                  Earnings
                 </h2>
                 <p className="text-sm text-zinc-400">
-                  Create tasks, review submissions, and download training datasets.
+                  View your balance and payout history from approved submissions.
                 </p>
-                <div className="mt-4 text-sm font-medium text-purple-400 group-hover:text-purple-300">
-                  Go to Dashboard →
+                <div className="mt-4 text-sm font-medium text-yellow-400 group-hover:text-yellow-300">
+                  View Earnings →
                 </div>
               </Link>
+            )}
+
+            {profile.role === 'business' && (
+              <>
+                <Link
+                  href="/business"
+                  className="group rounded-2xl border border-zinc-800 bg-zinc-900 p-8 transition hover:border-purple-500/50 hover:bg-zinc-900/80"
+                >
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-purple-600/20">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a855f7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="3" width="7" height="7" />
+                      <rect x="14" y="3" width="7" height="7" />
+                      <rect x="14" y="14" width="7" height="7" />
+                      <rect x="3" y="14" width="7" height="7" />
+                    </svg>
+                  </div>
+                  <h2 className="mb-2 text-xl font-semibold group-hover:text-purple-400">
+                    Open Dashboard
+                  </h2>
+                  <p className="text-sm text-zinc-400">
+                    Create tasks, review submissions, and download training datasets.
+                  </p>
+                  <div className="mt-4 text-sm font-medium text-purple-400 group-hover:text-purple-300">
+                    Go to Dashboard →
+                  </div>
+                </Link>
+
+                <Link
+                  href="/billing"
+                  className="group rounded-2xl border border-zinc-800 bg-zinc-900 p-8 transition hover:border-yellow-500/50 hover:bg-zinc-900/80"
+                >
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-yellow-600/20">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#eab308" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+                      <line x1="1" y1="10" x2="23" y2="10" />
+                    </svg>
+                  </div>
+                  <h2 className="mb-2 text-xl font-semibold group-hover:text-yellow-400">
+                    Billing
+                  </h2>
+                  <p className="text-sm text-zinc-400">
+                    Add funds to your account and view transaction history.
+                  </p>
+                  <div className="mt-4 text-sm font-medium text-yellow-400 group-hover:text-yellow-300">
+                    Manage Billing →
+                  </div>
+                </Link>
+              </>
             )}
           </div>
         </div>
