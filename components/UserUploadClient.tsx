@@ -81,6 +81,7 @@ export default function UserUploadClient() {
   const animFrameRef = useRef<number>(0);
   const chunksRef = useRef<Blob[]>([]);
   const framesRef = useRef<PoseFrame[]>([]);
+  const faceBlurCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   // Create/revoke blob URL when recordedBlob changes
   useEffect(() => {
@@ -163,9 +164,90 @@ export default function UserUploadClient() {
     }
   }, [loadingModel]);
 
+  // Face keypoints: 0 nose, 1 left_eye, 2 right_eye, 3 left_ear, 4 right_ear
+  // Expand box to cover full face (forehead, cheeks, chin), not just eyes/nose
+  const getFaceBbox = useCallback(
+    (keypoints: Keypoint[], canvasWidth: number, canvasHeight: number) => {
+      const faceIndices = [0, 1, 2, 3, 4];
+      const valid = faceIndices
+        .map((i) => keypoints[i])
+        .filter((kp) => kp && (kp.score ?? 1) > 0.3);
+      if (valid.length === 0) return null;
+      const xs = valid.map((k) => k.x);
+      const ys = valid.map((k) => k.y);
+      const rangeX = Math.max(...xs) - Math.min(...xs) || 40;
+      const rangeY = Math.max(...ys) - Math.min(...ys) || 50;
+      // Tighter horizontal (just face width); more vertical (forehead + chin)
+      const padX = rangeX * 0.45;
+      const padY = rangeY * 2;
+      let minX = Math.min(...xs) - padX;
+      let maxX = Math.max(...xs) + padX;
+      let minY = Math.min(...ys) - padY;
+      let maxY = Math.max(...ys) + padY;
+      // Minimum size: face-shaped (narrower than tall), don't force a wide box
+      const minW = Math.min(canvasWidth, canvasHeight) * 0.1;
+      const minH = Math.min(canvasWidth, canvasHeight) * 0.22;
+      const cx = (minX + maxX) / 2;
+      const cy = (minY + maxY) / 2;
+      const w = Math.max(maxX - minX, minW);
+      const h = Math.max(maxY - minY, minH);
+      minX = cx - w / 2;
+      maxX = cx + w / 2;
+      minY = cy - h / 2;
+      maxY = cy + h / 2;
+      // Clamp to canvas
+      minX = Math.max(0, minX);
+      minY = Math.max(0, minY);
+      maxX = Math.min(canvasWidth, maxX);
+      maxY = Math.min(canvasHeight, maxY);
+      const outW = maxX - minX;
+      const outH = maxY - minY;
+      if (outW < 20 || outH < 20) return null;
+      return { x: minX, y: minY, w: outW, h: outH };
+    },
+    []
+  );
+
+  const blurFaceRegion = useCallback(
+    (
+      ctx: CanvasRenderingContext2D,
+      keypoints: Keypoint[],
+      width: number,
+      height: number,
+      blurPx = 16
+    ) => {
+      const bbox = getFaceBbox(keypoints, width, height);
+      if (!bbox) return;
+      let off = faceBlurCanvasRef.current;
+      if (!off) {
+        off = document.createElement('canvas');
+        faceBlurCanvasRef.current = off;
+      }
+      const { x, y, w, h } = bbox;
+      const iw = Math.max(1, Math.floor(w));
+      const ih = Math.max(1, Math.floor(h));
+      off.width = iw;
+      off.height = ih;
+      const offCtx = off.getContext('2d');
+      if (!offCtx) return;
+      offCtx.drawImage(ctx.canvas, x, y, w, h, 0, 0, iw, ih);
+      offCtx.filter = `blur(${blurPx}px)`;
+      offCtx.drawImage(off, 0, 0);
+      offCtx.filter = 'none';
+      ctx.drawImage(off, 0, 0, iw, ih, x, y, w, h);
+    },
+    [getFaceBbox]
+  );
+
   const drawKeypoints = useCallback(
-    (keypoints: Keypoint[], ctx: CanvasRenderingContext2D, width: number, height: number) => {
-      ctx.clearRect(0, 0, width, height);
+    (
+      keypoints: Keypoint[],
+      ctx: CanvasRenderingContext2D,
+      width: number,
+      height: number,
+      skipClear = false
+    ) => {
+      if (!skipClear) ctx.clearRect(0, 0, width, height);
 
       const connections: [number, number][] = [
         [0, 1], [0, 2], [1, 3], [2, 4],
@@ -215,15 +297,21 @@ export default function UserUploadClient() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    const w = video.videoWidth;
+    const h = video.videoHeight;
+    canvas.width = w;
+    canvas.height = h;
+
+    // Always draw current video frame (so recorded stream has video + blur + skeleton)
+    ctx.drawImage(video, 0, 0, w, h);
 
     try {
       const poses = await detector.estimatePoses(video);
       if (poses.length > 0) {
         const keypoints = poses[0].keypoints;
         setCurrentKeypoints(keypoints);
-        drawKeypoints(keypoints, ctx, canvas.width, canvas.height);
+        blurFaceRegion(ctx, keypoints, w, h);
+        drawKeypoints(keypoints, ctx, w, h, true);
 
         if (mediaRecorderRef.current?.state === 'recording') {
           framesRef.current.push({
@@ -243,7 +331,7 @@ export default function UserUploadClient() {
     }
 
     animFrameRef.current = requestAnimationFrame(detectPose);
-  }, [drawKeypoints]);
+  }, [drawKeypoints, blurFaceRegion]);
 
   const startCamera = useCallback(async () => {
     try {
@@ -279,11 +367,14 @@ export default function UserUploadClient() {
   }, [stream]);
 
   const startRecording = () => {
-    if (!stream) return;
+    const canvas = canvasRef.current;
+    if (!stream || !canvas) return;
     chunksRef.current = [];
     framesRef.current = [];
 
-    const mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+    // Record from canvas (video + face blur + skeleton) for privacy
+    const canvasStream = canvas.captureStream(30);
+    const mediaRecorder = new MediaRecorder(canvasStream, { mimeType: 'video/webm' });
     mediaRecorderRef.current = mediaRecorder;
 
     mediaRecorder.ondataavailable = (e) => {
@@ -615,6 +706,9 @@ export default function UserUploadClient() {
               </div>
             )}
           </div>
+          <p className="mb-4 text-xs text-zinc-500">
+            Your face is blurred in the recording for privacy.
+          </p>
 
           {modelLoaded && currentKeypoints.length > 0 && (
             <div className="mb-4">
