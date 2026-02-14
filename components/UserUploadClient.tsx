@@ -60,6 +60,7 @@ export default function UserUploadClient() {
   const [currentKeypoints, setCurrentKeypoints] = useState<Keypoint[]>([]);
   const [recordedFrames, setRecordedFrames] = useState<PoseFrame[]>([]);
   const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
+  const [recordedBlobUrl, setRecordedBlobUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
 
@@ -71,6 +72,20 @@ export default function UserUploadClient() {
   const animFrameRef = useRef<number>(0);
   const chunksRef = useRef<Blob[]>([]);
   const framesRef = useRef<PoseFrame[]>([]);
+
+  // Create/revoke blob URL when recordedBlob changes
+  useEffect(() => {
+    if (recordedBlob) {
+      const url = URL.createObjectURL(recordedBlob);
+      setRecordedBlobUrl(url);
+      return () => {
+        URL.revokeObjectURL(url);
+        setRecordedBlobUrl(null);
+      };
+    } else {
+      setRecordedBlobUrl(null);
+    }
+  }, [recordedBlob]);
 
   // Fetch tasks on mount
   useEffect(() => {
@@ -298,6 +313,7 @@ export default function UserUploadClient() {
   };
 
   const handleReject = () => {
+    setRecordedBlobUrl(null);
     setRecordedBlob(null);
     setRecordedFrames([]);
     setPhase('camera');
@@ -305,6 +321,7 @@ export default function UserUploadClient() {
   };
 
   const handleReset = () => {
+    setRecordedBlobUrl(null);
     setRecordedBlob(null);
     setRecordedFrames([]);
     setUploadSuccess(false);
@@ -388,9 +405,9 @@ export default function UserUploadClient() {
         <div className="flex flex-col items-center gap-6 lg:flex-row lg:items-start">
           <div>
             <h3 className="mb-2 text-sm font-medium text-zinc-400">Recorded Video</h3>
-            {recordedBlob && (
+            {recordedBlobUrl && (
               <video
-                src={URL.createObjectURL(recordedBlob)}
+                src={recordedBlobUrl}
                 controls
                 className="w-[500px] rounded-lg bg-black"
               />

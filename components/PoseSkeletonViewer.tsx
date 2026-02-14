@@ -149,7 +149,20 @@ export default function PoseSkeletonViewer({ keypoints, width = 500, height = 40
 
   return (
     <div style={{ width, height }} className="rounded-lg overflow-hidden border border-zinc-700">
-      <Canvas camera={{ position: [0, 0, 5], fov: 50 }}>
+      <Canvas
+        camera={{ position: [0, 0, 5], fov: 50 }}
+        gl={{ powerPreference: 'low-power', antialias: false }}
+        onCreated={({ gl }) => {
+          const canvas = gl.domElement;
+          canvas.addEventListener('webglcontextlost', (e) => {
+            e.preventDefault();
+            console.warn('WebGL context lost — will restore automatically');
+          });
+          canvas.addEventListener('webglcontextrestored', () => {
+            console.log('WebGL context restored');
+          });
+        }}
+      >
         <ambientLight intensity={0.6} />
         <pointLight position={[10, 10, 10]} intensity={1} />
         <pointLight position={[-10, -10, -10]} intensity={0.5} />
