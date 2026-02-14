@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json();
-    const { submissionId, status } = body;
+    const { submissionId, status, feedback } = body;
 
     if (!submissionId || !status) {
       return NextResponse.json(
@@ -208,9 +208,13 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
-    await updateDoc(submissionRef, { status });
+    const updateData: Record<string, unknown> = { status };
+    if (feedback !== undefined) {
+      updateData.feedback = feedback;
+    }
+    await updateDoc(submissionRef, updateData);
 
-    return NextResponse.json({ id: submissionId, status });
+    return NextResponse.json({ id: submissionId, status, feedback: feedback || null });
   } catch (error) {
     console.error('Error updating submission:', error);
     return NextResponse.json({ error: 'Failed to update submission' }, { status: 500 });

@@ -172,8 +172,11 @@ export default function Sidebar() {
           </div>
         ) : user && profile ? (
           <div className="space-y-1">
-            {/* User info */}
-            <div className="flex items-center gap-3 rounded-lg px-3 py-2 overflow-hidden">
+            {/* User info — links to profile */}
+            <Link
+              href="/profile"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 overflow-hidden transition hover:bg-zinc-800/50"
+            >
               <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white ${
                 profile.role === 'business' ? 'bg-purple-600' : 'bg-blue-600'
               }`}>
@@ -187,7 +190,7 @@ export default function Sidebar() {
                   {profile.role === 'business' ? 'Business' : 'Contributor'}
                 </div>
               </div>
-            </div>
+            </Link>
             {/* Sign out */}
             <button
               onClick={handleSignOut}
