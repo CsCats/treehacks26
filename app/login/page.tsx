@@ -34,65 +34,71 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-950 text-white">
-      <div className="w-full max-w-md px-6">
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold">Welcome Back</h1>
-          <p className="mt-2 text-sm text-zinc-400">Sign in to your account</p>
-        </div>
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-white">
+      {/* Background */}
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(59,130,246,0.08),transparent)] dark:bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(59,130,246,0.12),transparent)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_80%_50%,rgba(139,92,246,0.05),transparent)] dark:bg-[radial-gradient(ellipse_60%_40%_at_80%_50%,rgba(139,92,246,0.08),transparent)]" />
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="email" className="mb-1 block text-sm font-medium text-zinc-300">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm text-white placeholder-zinc-600 outline-none transition focus:border-zinc-600 focus:ring-1 focus:ring-zinc-600"
-              placeholder="you@example.com"
-            />
+      <div className="relative w-full max-w-md px-6">
+        <div className="rounded-2xl border border-zinc-200 bg-white/80 p-8 shadow-xl backdrop-blur-sm dark:border-zinc-800/80 dark:bg-zinc-900/60 dark:shadow-2xl dark:shadow-black/20">
+          <div className="mb-8 text-center">
+            <h1 className="text-3xl font-bold tracking-tight">Welcome back</h1>
+            <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">Sign in to your RoboData account</p>
           </div>
 
-          <div>
-            <label htmlFor="password" className="mb-1 block text-sm font-medium text-zinc-300">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm text-white placeholder-zinc-600 outline-none transition focus:border-zinc-600 focus:ring-1 focus:ring-zinc-600"
-              placeholder="Your password"
-            />
-          </div>
-
-          {error && (
-            <div className="rounded-lg bg-red-500/10 px-4 py-2.5 text-sm text-red-400">
-              {error}
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label htmlFor="email" className="mb-2 block text-sm font-medium text-zinc-600 dark:text-zinc-300">
+                Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full rounded-xl border border-zinc-300 bg-zinc-50 px-4 py-3 text-zinc-900 placeholder-zinc-400 transition focus:border-blue-500 dark:border-zinc-700 dark:bg-zinc-800/80 dark:text-white dark:placeholder-zinc-500"
+                placeholder="you@example.com"
+              />
             </div>
-          )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-zinc-200 disabled:opacity-50"
-          >
-            {loading ? 'Signing in...' : 'Sign In'}
-          </button>
-        </form>
+            <div>
+              <label htmlFor="password" className="mb-2 block text-sm font-medium text-zinc-600 dark:text-zinc-300">
+                Password
+              </label>
+              <input
+                id="password"
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full rounded-xl border border-zinc-300 bg-zinc-50 px-4 py-3 text-zinc-900 placeholder-zinc-400 transition focus:border-blue-500 dark:border-zinc-700 dark:bg-zinc-800/80 dark:text-white dark:placeholder-zinc-500"
+                placeholder="••••••••"
+              />
+            </div>
 
-        <p className="mt-6 text-center text-sm text-zinc-500">
-          Don&apos;t have an account?{' '}
-          <Link href="/signup" className="text-white hover:underline">
-            Create one
-          </Link>
-        </p>
+            {error && (
+              <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 py-3.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition hover:from-blue-400 hover:to-blue-500 hover:shadow-blue-500/30 disabled:opacity-50"
+            >
+              {loading ? 'Signing in…' : 'Sign in'}
+            </button>
+          </form>
+
+          <p className="mt-6 text-center text-sm text-zinc-500 dark:text-zinc-500">
+            Don&apos;t have an account?{' '}
+            <Link href="/signup" className="font-medium text-blue-600 transition hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300">
+              Create one
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

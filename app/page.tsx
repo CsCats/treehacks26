@@ -69,7 +69,7 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-950">
+      <div className="flex min-h-screen items-center justify-center bg-background">
         <motion.div
           animate={{ opacity: [0.3, 1, 0.3] }}
           transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
@@ -86,10 +86,10 @@ export default function Home() {
   // --- SIGNED IN: role-appropriate dashboard ---
   if (user && profile) {
     return (
-      <div className="relative flex min-h-screen flex-col items-center overflow-hidden p-8 text-white" style={{ background: '#09090b' }}>
-        {/* 3D constellation background */}
+      <div className="relative flex min-h-screen flex-col items-center overflow-hidden bg-background p-8 text-foreground">
+        {/* 3D constellation wallpaper - adapts to light/dark theme */}
         <ConstellationBackground />
-        <div className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(ellipse_at_center,transparent_20%,rgba(9,9,11,0.85)_70%,rgba(9,9,11,1)_100%)]" />
+        <div className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(ellipse_at_center,transparent_20%,var(--background)_70%,var(--background)_100%)]" />
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -100,7 +100,7 @@ export default function Home() {
           <h1 className="mb-1 text-3xl font-bold">
             Welcome back, {profile.displayName || 'there'}
           </h1>
-          <p className="mb-8 text-zinc-400">
+          <p className="mb-8 text-zinc-500 dark:text-zinc-400">
             {profile.role === 'business'
               ? 'Manage your tasks and review submissions.'
               : 'Record motion data and contribute to robotics training.'}
@@ -112,7 +112,7 @@ export default function Home() {
                 <motion.div custom={0} variants={scaleIn} initial="hidden" animate="visible">
                   <Link
                     href="/userUpload"
-                    className="group flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900 p-8 transition hover:border-blue-500/50 hover:bg-zinc-900/80"
+                    className="group flex flex-col rounded-2xl border border-zinc-200 bg-white p-8 transition hover:border-blue-500/50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-900/80"
                   >
                     <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600/20">
                       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -120,10 +120,10 @@ export default function Home() {
                         <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
                       </svg>
                     </div>
-                    <h2 className="mb-2 text-xl font-semibold group-hover:text-blue-400">
+                    <h2 className="mb-2 text-xl font-semibold text-zinc-900 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400">
                       Start Contributing
                     </h2>
-                    <p className="text-sm text-zinc-400">
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
                       Record yourself performing tasks. Our AI tracks your body movements in real-time.
                     </p>
                     <div className="mt-4 text-sm font-medium text-blue-400 group-hover:text-blue-300">
@@ -135,7 +135,7 @@ export default function Home() {
                 <motion.div custom={1} variants={scaleIn} initial="hidden" animate="visible">
                   <Link
                     href="/contributions"
-                    className="group flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900 p-8 transition hover:border-emerald-500/50 hover:bg-zinc-900/80"
+                    className="group flex flex-col rounded-2xl border border-zinc-200 bg-white p-8 transition hover:border-emerald-500/50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-900/80"
                   >
                     <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-600/20">
                       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -146,10 +146,10 @@ export default function Home() {
                         <polyline points="10 9 9 9 8 9" />
                       </svg>
                     </div>
-                    <h2 className="mb-2 text-xl font-semibold group-hover:text-emerald-400">
+                    <h2 className="mb-2 text-xl font-semibold text-zinc-900 group-hover:text-emerald-600 dark:text-white dark:group-hover:text-emerald-400">
                       View Past Contributions
                     </h2>
-                    <p className="text-sm text-zinc-400">
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
                       Track the approval status of your submitted training data.
                     </p>
                     <div className="mt-4 text-sm font-medium text-emerald-400 group-hover:text-emerald-300">
@@ -161,10 +161,10 @@ export default function Home() {
             )}
 
             {profile.role === 'contributor' && (
-              <motion.div custom={2} variants={scaleIn} initial="hidden" animate="visible">
+                <motion.div custom={2} variants={scaleIn} initial="hidden" animate="visible">
                 <Link
                   href="/earnings"
-                  className="group flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900 p-8 transition hover:border-yellow-500/50 hover:bg-zinc-900/80"
+                  className="group flex flex-col rounded-2xl border border-zinc-200 bg-white p-8 transition hover:border-yellow-500/50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-900/80"
                 >
                   <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-yellow-600/20">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#eab308" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -172,10 +172,10 @@ export default function Home() {
                       <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
                     </svg>
                   </div>
-                  <h2 className="mb-2 text-xl font-semibold group-hover:text-yellow-400">
+                  <h2 className="mb-2 text-xl font-semibold text-zinc-900 group-hover:text-yellow-600 dark:text-white dark:group-hover:text-yellow-400">
                     Earnings
                   </h2>
-                  <p className="text-sm text-zinc-400">
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400">
                     View your balance and payout history from approved submissions.
                   </p>
                   <div className="mt-4 text-sm font-medium text-yellow-400 group-hover:text-yellow-300">
@@ -202,7 +202,7 @@ export default function Home() {
                 <motion.div custom={0} variants={scaleIn} initial="hidden" animate="visible">
                   <Link
                     href="/business"
-                    className="group flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900 p-8 transition hover:border-purple-500/50 hover:bg-zinc-900/80"
+                    className="group flex flex-col rounded-2xl border border-zinc-200 bg-white p-8 transition hover:border-purple-500/50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-900/80"
                   >
                     <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-purple-600/20">
                       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a855f7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -212,10 +212,10 @@ export default function Home() {
                         <rect x="3" y="14" width="7" height="7" />
                       </svg>
                     </div>
-                    <h2 className="mb-2 text-xl font-semibold group-hover:text-purple-400">
+                    <h2 className="mb-2 text-xl font-semibold text-zinc-900 group-hover:text-purple-600 dark:text-white dark:group-hover:text-purple-400">
                       Open Dashboard
                     </h2>
-                    <p className="text-sm text-zinc-400">
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
                       Create tasks, review submissions, and download training datasets.
                     </p>
                     <div className="mt-4 text-sm font-medium text-purple-400 group-hover:text-purple-300">
@@ -227,7 +227,7 @@ export default function Home() {
                 <motion.div custom={1} variants={scaleIn} initial="hidden" animate="visible">
                   <Link
                     href="/billing"
-                    className="group flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900 p-8 transition hover:border-yellow-500/50 hover:bg-zinc-900/80"
+                    className="group flex flex-col rounded-2xl border border-zinc-200 bg-white p-8 transition hover:border-yellow-500/50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-900/80"
                   >
                     <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-yellow-600/20">
                       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#eab308" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -235,10 +235,10 @@ export default function Home() {
                         <line x1="1" y1="10" x2="23" y2="10" />
                       </svg>
                     </div>
-                    <h2 className="mb-2 text-xl font-semibold group-hover:text-yellow-400">
+                    <h2 className="mb-2 text-xl font-semibold text-zinc-900 group-hover:text-yellow-600 dark:text-white dark:group-hover:text-yellow-400">
                       Billing
                     </h2>
-                    <p className="text-sm text-zinc-400">
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
                       Add funds to your account and view transaction history.
                     </p>
                     <div className="mt-4 text-sm font-medium text-yellow-400 group-hover:text-yellow-300">
@@ -250,7 +250,7 @@ export default function Home() {
                 <motion.div custom={2} variants={scaleIn} initial="hidden" animate="visible">
                   <Link
                     href="/stats"
-                    className="group flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900 p-8 transition hover:border-emerald-500/50 hover:bg-zinc-900/80"
+                    className="group flex flex-col rounded-2xl border border-zinc-200 bg-white p-8 transition hover:border-emerald-500/50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-900/80"
                   >
                     <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-600/20">
                       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -259,10 +259,10 @@ export default function Home() {
                         <line x1="6" y1="20" x2="6" y2="14" />
                       </svg>
                     </div>
-                    <h2 className="mb-2 text-xl font-semibold group-hover:text-emerald-400">
+                    <h2 className="mb-2 text-xl font-semibold text-zinc-900 group-hover:text-emerald-600 dark:text-white dark:group-hover:text-emerald-400">
                       Stats
                     </h2>
-                    <p className="text-sm text-zinc-400">
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
                       View top contributors, earnings leaderboards, and task analytics.
                     </p>
                     <div className="mt-4 text-sm font-medium text-emerald-400 group-hover:text-emerald-300">
@@ -274,7 +274,7 @@ export default function Home() {
                 <motion.div custom={3} variants={scaleIn} initial="hidden" animate="visible">
                   <Link
                     href="/developer"
-                    className="group flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900 p-8 transition hover:border-cyan-500/50 hover:bg-zinc-900/80"
+                    className="group flex flex-col rounded-2xl border border-zinc-200 bg-white p-8 transition hover:border-cyan-500/50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-900/80"
                   >
                     <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-cyan-600/20">
                       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#06b6d4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -282,10 +282,10 @@ export default function Home() {
                         <polyline points="8 6 2 12 8 18" />
                       </svg>
                     </div>
-                    <h2 className="mb-2 text-xl font-semibold group-hover:text-cyan-400">
+                    <h2 className="mb-2 text-xl font-semibold text-zinc-900 group-hover:text-cyan-600 dark:text-white dark:group-hover:text-cyan-400">
                       Developer Integration
                     </h2>
-                    <p className="text-sm text-zinc-400">
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
                       Create API endpoints to programmatically access your training data.
                     </p>
                     <div className="mt-4 text-sm font-medium text-cyan-400 group-hover:text-cyan-300">
@@ -305,12 +305,10 @@ export default function Home() {
   //  NOT SIGNED IN — ANIMATED LANDING PAGE
   // ═══════════════════════════════════════════════════
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden text-white" style={{ background: '#09090b' }}>
-      {/* 3D constellation background */}
+    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background text-foreground">
+      {/* Constellation wallpaper - adapts to light/dark theme */}
       <ConstellationBackground />
-
-      {/* Radial gradient overlay for depth */}
-      <div className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(ellipse_at_center,transparent_20%,rgba(9,9,11,0.8)_70%,rgba(9,9,11,1)_100%)]" />
+      <div className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(ellipse_at_center,transparent_20%,var(--background)_70%,var(--background)_100%)]" />
 
       {/* Top glow accent */}
       <div className="pointer-events-none absolute -top-40 left-1/2 h-80 w-[600px] -translate-x-1/2 rounded-full bg-blue-500/10 blur-[120px]" />
@@ -351,11 +349,11 @@ export default function Home() {
           variants={fadeUp}
           initial="hidden"
           animate="visible"
-          className="mb-10 max-w-xl text-center text-lg leading-relaxed text-zinc-400"
+          className="mb-10 max-w-xl text-center text-lg leading-relaxed text-zinc-500 dark:text-zinc-400"
         >
           Businesses post tasks. Users record themselves performing them.
           AI captures every movement in real-time.{' '}
-          <span className="text-zinc-300">Robots learn from real humans.</span>
+          <span className="text-zinc-600 dark:text-zinc-300">Robots learn from real humans.</span>
         </motion.p>
 
         {/* CTA Buttons */}
@@ -380,7 +378,7 @@ export default function Home() {
           </motion.div>
           <Link
             href="/login"
-            className="rounded-xl border border-zinc-700 bg-zinc-900/50 px-8 py-3.5 text-sm font-semibold text-white backdrop-blur-sm transition hover:border-zinc-500 hover:bg-zinc-800/80"
+            className="rounded-xl border border-zinc-300 bg-white px-8 py-3.5 text-sm font-semibold text-zinc-900 backdrop-blur-sm transition hover:border-zinc-400 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900/50 dark:text-white dark:hover:border-zinc-500 dark:hover:bg-zinc-800/80"
           >
             Log In
           </Link>
@@ -441,15 +439,15 @@ export default function Home() {
               <div className={`mb-2 text-xs font-bold ${item.color}`}>
                 STEP {item.step}
               </div>
-              <h3 className="mb-2 text-lg font-semibold text-white">{item.title}</h3>
-              <p className="text-sm leading-relaxed text-zinc-400">{item.desc}</p>
+              <h3 className="mb-2 text-lg font-semibold text-zinc-900 dark:text-white">{item.title}</h3>
+              <p className="text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">{item.desc}</p>
             </motion.div>
           ))}
         </motion.div>
       </main>
 
       {/* Bottom fade */}
-      <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-zinc-950 to-transparent" />
+      <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[var(--background)] to-transparent" />
     </div>
   );
 }

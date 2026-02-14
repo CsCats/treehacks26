@@ -76,39 +76,41 @@ export default function BillingPage() {
 
   if (authLoading || loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-950">
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-zinc-700 border-t-white" />
+      <div className="flex min-h-screen items-center justify-center bg-transparent">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-700 border-t-blue-500" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 p-8 text-white">
+    <div className="min-h-screen p-8 text-zinc-900 dark:text-white">
       <div className="mx-auto max-w-4xl">
-        <h1 className="mb-1 text-3xl font-bold">Billing</h1>
-        <p className="mb-8 text-zinc-400">Manage your account balance and view transactions</p>
+        <h1 className="mb-1 text-3xl font-bold tracking-tight">Billing</h1>
+        <p className="mb-8 text-zinc-500 dark:text-zinc-400">Manage your account balance and view transactions</p>
 
         {/* Balance Card */}
-        <div className="mb-8 rounded-2xl border border-zinc-800 bg-gradient-to-br from-zinc-900 to-zinc-900/50 p-8">
-          <div className="text-sm font-medium text-zinc-400">Current Balance</div>
-          <div className="mt-1 text-4xl font-bold">${balance.toFixed(2)}</div>
-          <p className="mt-2 text-sm text-zinc-500">
-            Funds are deducted when you approve submissions
-          </p>
+        <div className="mb-8 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-xl dark:border-zinc-800 dark:bg-zinc-900/80 dark:shadow-black/10">
+          <div className="border-b border-zinc-200 bg-gradient-to-br from-blue-500/10 to-transparent p-8 dark:border-zinc-800/80">
+            <div className="text-sm font-medium uppercase tracking-wider text-zinc-500">Current balance</div>
+            <div className="mt-2 text-4xl font-bold tracking-tight text-zinc-900 dark:text-white">${balance.toFixed(2)}</div>
+            <p className="mt-3 text-sm text-zinc-500">
+              Funds are deducted when you approve submissions
+            </p>
+          </div>
         </div>
 
         {/* Add Funds */}
-        <div className="mb-8 rounded-xl border border-zinc-800 bg-zinc-900 p-6">
-          <h2 className="mb-4 text-lg font-semibold">Add Funds</h2>
+        <div className="mb-8 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
+          <h2 className="mb-4 text-lg font-semibold text-zinc-200">Add funds</h2>
           <div className="mb-4 flex flex-wrap gap-2">
             {presetAmounts.map(amt => (
               <button
                 key={amt}
                 onClick={() => setAddAmount(String(amt))}
-                className={`rounded-lg border px-4 py-2 text-sm font-medium transition ${
+                className={`rounded-xl border px-4 py-2.5 text-sm font-medium transition ${
                   addAmount === String(amt)
-                    ? 'border-blue-500 bg-blue-500/10 text-blue-400'
-                    : 'border-zinc-700 bg-zinc-800 text-zinc-300 hover:border-zinc-600'
+                    ? 'border-blue-500 bg-blue-500/15 text-blue-400'
+                    : 'border-zinc-700 bg-zinc-800/80 text-zinc-300 hover:border-zinc-600'
                 }`}
               >
                 ${amt}
@@ -117,7 +119,7 @@ export default function BillingPage() {
           </div>
           <form onSubmit={handleAddFunds} className="flex gap-3">
             <div className="relative flex-1">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500">$</span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500">$</span>
               <input
                 type="number"
                 min="1"
@@ -125,24 +127,24 @@ export default function BillingPage() {
                 value={addAmount}
                 onChange={e => setAddAmount(e.target.value)}
                 placeholder="0.00"
-                className="w-full rounded-lg border border-zinc-700 bg-zinc-800 py-2.5 pl-7 pr-4 text-white placeholder-zinc-500 focus:border-blue-500 focus:outline-none"
+                className="w-full rounded-xl border border-zinc-700 bg-zinc-800/80 py-2.5 pl-8 pr-4 text-white placeholder-zinc-500 transition focus:border-blue-500"
               />
             </div>
             <button
               type="submit"
               disabled={adding || !addAmount || parseFloat(addAmount) <= 0}
-              className="rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+              className="rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition hover:from-blue-400 hover:to-blue-500 disabled:opacity-50"
             >
-              {adding ? 'Adding...' : 'Add Funds'}
+              {adding ? 'Adding…' : 'Add funds'}
             </button>
           </form>
         </div>
 
         {/* Transaction History */}
         <div>
-          <h2 className="mb-4 text-lg font-semibold">Transaction History</h2>
+          <h2 className="mb-4 text-lg font-semibold text-zinc-200">Transaction history</h2>
           {transactions.length === 0 ? (
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-8 text-center text-zinc-500">
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-8 text-center text-zinc-500">
               No transactions yet
             </div>
           ) : (
@@ -150,7 +152,7 @@ export default function BillingPage() {
               {transactions.map(tx => (
                 <div
                   key={tx.id}
-                  className="flex items-center justify-between rounded-lg border border-zinc-800 bg-zinc-900 px-5 py-4"
+                  className="flex items-center justify-between rounded-xl border border-zinc-800 bg-zinc-900/60 px-5 py-4 transition hover:border-zinc-700"
                 >
                   <div className="flex items-center gap-3">
                     <div className={`flex h-8 w-8 items-center justify-center rounded-full text-sm ${

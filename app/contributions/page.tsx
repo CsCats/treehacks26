@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth } from '@/lib/AuthContext';
 
 interface Submission {
@@ -96,30 +97,39 @@ export default function ContributionsPage() {
 
   if (authLoading || loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-950">
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-zinc-700 border-t-white" />
+      <div className="flex min-h-screen items-center justify-center bg-transparent">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-700 border-t-blue-500" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 p-8 text-white">
+    <div className="min-h-screen p-8 text-zinc-900 dark:text-white">
       <div className="mx-auto max-w-4xl">
-        <h1 className="mb-1 text-3xl font-bold">My Contributions</h1>
-        <p className="mb-8 text-zinc-400">
+        <h1 className="mb-1 text-3xl font-bold tracking-tight">My contributions</h1>
+        <p className="mb-8 text-zinc-500 dark:text-zinc-400">
           Track the status of your submitted training data
         </p>
 
         {submissions.length === 0 ? (
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-12 text-center">
-            <div className="mb-3 text-4xl">📭</div>
-            <p className="text-zinc-400">No contributions yet.</p>
-            <a
+          <div className="rounded-2xl border border-zinc-200 bg-white p-12 text-center dark:border-zinc-800 dark:bg-zinc-900/60">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-zinc-100 text-3xl dark:bg-zinc-800/80">
+              📭
+            </div>
+            <p className="text-zinc-700 dark:text-zinc-300">No contributions yet</p>
+            <p className="mt-1 text-sm text-zinc-500">
+              Record a task to submit your first contribution.
+            </p>
+            <Link
               href="/userUpload"
-              className="mt-4 inline-block rounded-lg bg-blue-600 px-6 py-2 text-sm font-medium text-white hover:bg-blue-700"
+              className="mt-6 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition hover:from-blue-400 hover:to-blue-500"
             >
-              Start Contributing
-            </a>
+              Start contributing
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+              </svg>
+            </Link>
           </div>
         ) : (
           <div className="space-y-3">
@@ -130,11 +140,11 @@ export default function ContributionsPage() {
               return (
                 <div
                   key={sub.id}
-                  className="flex items-center justify-between rounded-xl border border-zinc-800 bg-zinc-900 p-5 transition hover:border-zinc-700"
+                  className="flex items-center justify-between rounded-xl border border-zinc-200 bg-white p-5 transition hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900/60 dark:hover:border-zinc-700"
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3">
-                      <h3 className="font-semibold truncate">
+                      <h3 className="font-semibold truncate text-zinc-900 dark:text-white">
                         {task?.title || 'Unknown Task'}
                       </h3>
                       {task?.businessName && (

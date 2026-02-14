@@ -75,46 +75,46 @@ export default function StatsPage() {
 
   if (authLoading || loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-950">
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-zinc-700 border-t-white" />
+      <div className="flex min-h-screen items-center justify-center bg-transparent">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-700 border-t-blue-500" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 p-8 text-white">
+    <div className="min-h-screen p-8 text-white">
       <div className="mx-auto max-w-5xl">
-        <h1 className="mb-1 text-3xl font-bold">Stats</h1>
+        <h1 className="mb-1 text-3xl font-bold tracking-tight">Stats</h1>
         <p className="mb-8 text-zinc-400">Analytics and leaderboards for your tasks</p>
 
         {/* Overview Cards */}
         {overview && (
           <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4">
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
+            <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5 transition hover:border-zinc-700">
               <div className="text-2xl font-bold">{overview.totalSubmissions}</div>
               <div className="mt-1 text-xs text-zinc-500">Total Submissions</div>
             </div>
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
+            <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5 transition hover:border-zinc-700">
               <div className="text-2xl font-bold text-green-400">{overview.totalApproved}</div>
               <div className="mt-1 text-xs text-zinc-500">Approved</div>
             </div>
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
+            <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5 transition hover:border-zinc-700">
               <div className="text-2xl font-bold text-yellow-400">{overview.totalPending}</div>
               <div className="mt-1 text-xs text-zinc-500">Pending</div>
             </div>
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
+            <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5 transition hover:border-zinc-700">
               <div className="text-2xl font-bold text-red-400">{overview.totalRejected}</div>
               <div className="mt-1 text-xs text-zinc-500">Rejected</div>
             </div>
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
+            <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5 transition hover:border-zinc-700">
               <div className="text-2xl font-bold">{overview.totalTasks}</div>
               <div className="mt-1 text-xs text-zinc-500">Tasks</div>
             </div>
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
+            <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5 transition hover:border-zinc-700">
               <div className="text-2xl font-bold text-blue-400">{overview.uniqueContributors}</div>
               <div className="mt-1 text-xs text-zinc-500">Contributors</div>
             </div>
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5 md:col-span-2">
+            <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5 transition hover:border-zinc-700 md:col-span-2">
               <div className="text-2xl font-bold text-emerald-400">${overview.totalPaidOut.toFixed(2)}</div>
               <div className="mt-1 text-xs text-zinc-500">Total Paid Out</div>
             </div>

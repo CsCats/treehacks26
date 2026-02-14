@@ -1,9 +1,10 @@
 'use client';
 
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import * as THREE from 'three';
+import { useTheme } from '@/lib/ThemeContext';
 
 // MoveNet keypoint indices
 // 0: nose, 1: left_eye, 2: right_eye, 3: left_ear, 4: right_ear,
@@ -133,6 +134,25 @@ function Bones({ positions, keypoints }: { positions: THREE.Vector3[]; keypoints
   );
 }
 
+function SceneBackground() {
+  const { scene } = useThree();
+  const { resolved } = useTheme();
+  useEffect(() => {
+    scene.background = new THREE.Color(resolved === 'dark' ? '#18181b' : '#f4f4f5');
+    return () => {
+      scene.background = null;
+    };
+  }, [scene, resolved]);
+  return null;
+}
+
+function ThemeGrid() {
+  const { resolved } = useTheme();
+  const gridColor = resolved === 'dark' ? '#404040' : '#d4d4d8';
+  const gridColorSecondary = resolved === 'dark' ? '#27272a' : '#e4e4e7';
+  return <gridHelper args={[10, 10, gridColor, gridColorSecondary]} rotation={[Math.PI / 2, 0, 0]} />;
+}
+
 export default function PoseSkeletonViewer({ keypoints, width = 500, height = 400 }: PoseSkeletonViewerProps) {
   const positions = useMemo(() => normalizeKeypoints(keypoints), [keypoints]);
 
@@ -140,7 +160,7 @@ export default function PoseSkeletonViewer({ keypoints, width = 500, height = 40
     return (
       <div
         style={{ width, height }}
-        className="flex items-center justify-center rounded-lg bg-zinc-900 text-zinc-500"
+        className="flex items-center justify-center rounded-lg bg-zinc-100 text-zinc-600 dark:bg-zinc-900 dark:text-zinc-500"
       >
         No pose data available
       </div>
@@ -148,7 +168,7 @@ export default function PoseSkeletonViewer({ keypoints, width = 500, height = 40
   }
 
   return (
-    <div style={{ width, height }} className="rounded-lg overflow-hidden border border-zinc-700">
+    <div style={{ width, height }} className="rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700">
       <Canvas
         camera={{ position: [0, 0, 5], fov: 50 }}
         gl={{ powerPreference: 'low-power', antialias: false }}
@@ -163,12 +183,13 @@ export default function PoseSkeletonViewer({ keypoints, width = 500, height = 40
           });
         }}
       >
+        <SceneBackground />
         <ambientLight intensity={0.6} />
         <pointLight position={[10, 10, 10]} intensity={1} />
         <pointLight position={[-10, -10, -10]} intensity={0.5} />
         <Joints positions={positions} keypoints={keypoints} />
         <Bones positions={positions} keypoints={keypoints} />
-        <gridHelper args={[10, 10, '#333', '#222']} rotation={[Math.PI / 2, 0, 0]} />
+        <ThemeGrid />
         <OrbitControls enableDamping dampingFactor={0.1} />
       </Canvas>
     </div>

@@ -3,13 +3,20 @@
 import { useRef, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+import { useTheme } from '@/lib/ThemeContext';
+
+const isDark = (resolved: string) => resolved === 'dark';
 
 // --- Floating particles that mimic pose keypoints ---
-function Particles({ count = 80 }: { count?: number }) {
+function Particles({ count = 80, dark }: { count?: number; dark: boolean }) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const lineRef = useRef<THREE.LineSegments>(null);
 
   const dummy = useMemo(() => new THREE.Object3D(), []);
+
+  // Particle color: light on dark bg, darker on light bg
+  const particleColor = dark ? '#60a5fa' : '#3b82f6';
+  const lineAlphaBase = dark ? 0.35 : 0.5;
 
   // Generate random particle positions and velocities
   const particles = useMemo(() => {
@@ -81,10 +88,11 @@ function Particles({ count = 80 }: { count?: number }) {
           linePositions[idx + 4] = particles[j].position.y;
           linePositions[idx + 5] = particles[j].position.z;
 
-          // Blue-to-purple gradient on lines
-          const r = 0.35 * alpha;
-          const g = 0.5 * alpha;
-          const b = 1.0 * alpha;
+          // Blue-to-purple gradient on lines (darker in light mode)
+          const mult = dark ? 1 : 0.45;
+          const r = (0.35 * alpha * mult);
+          const g = (0.5 * alpha * mult);
+          const b = (1.0 * alpha * mult);
           lineColors[idx] = r;
           lineColors[idx + 1] = g;
           lineColors[idx + 2] = b;
@@ -115,19 +123,23 @@ function Particles({ count = 80 }: { count?: number }) {
     <>
       <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>
         <sphereGeometry args={[1, 8, 8]} />
-        <meshBasicMaterial color="#60a5fa" transparent opacity={0.8} />
+        <meshBasicMaterial color={particleColor} transparent opacity={dark ? 0.8 : 0.7} />
       </instancedMesh>
       <lineSegments ref={lineRef}>
         <bufferGeometry />
-        <lineBasicMaterial vertexColors transparent opacity={0.35} />
+        <lineBasicMaterial vertexColors transparent opacity={lineAlphaBase} />
       </lineSegments>
     </>
   );
 }
 
 // --- Floating skeleton figure (pose keypoints) ---
-function PoseSkeleton() {
+function PoseSkeleton({ dark }: { dark: boolean }) {
   const groupRef = useRef<THREE.Group>(null);
+  const dotColor = dark ? '#a78bfa' : '#7c3aed';
+  const armColor = dark ? '#60a5fa' : '#2563eb';
+  const legColor = dark ? '#34d399' : '#059669';
+  const lineColor = dark ? '#818cf8' : '#6366f1';
 
   // Keypoints for a human-like skeleton (17 points like MoveNet)
   const keypoints = useMemo(
@@ -185,9 +197,9 @@ function PoseSkeleton() {
         <mesh key={i} position={kp as [number, number, number]}>
           <sphereGeometry args={[0.06, 12, 12]} />
           <meshBasicMaterial
-            color={i < 5 ? '#a78bfa' : i < 11 ? '#60a5fa' : '#34d399'}
+            color={i < 5 ? dotColor : i < 11 ? armColor : legColor}
             transparent
-            opacity={0.9}
+            opacity={dark ? 0.9 : 0.85}
           />
         </mesh>
       ))}
@@ -199,15 +211,18 @@ function PoseSkeleton() {
             args={[linePositions, 3]}
           />
         </bufferGeometry>
-        <lineBasicMaterial color="#818cf8" transparent opacity={0.6} />
+        <lineBasicMaterial color={lineColor} transparent opacity={dark ? 0.6 : 0.5} />
       </lineSegments>
-      {/* Glow around skeleton */}
-      <pointLight position={[0, 0.5, 1]} color="#818cf8" intensity={2} distance={4} />
+      {/* Glow around skeleton (subtler in light mode) */}
+      <pointLight position={[0, 0.5, 1]} color={lineColor} intensity={dark ? 2 : 0.8} distance={4} />
     </group>
   );
 }
 
 export default function ConstellationBackground() {
+  const { resolved } = useTheme();
+  const dark = isDark(resolved);
+
   return (
     <div className="absolute inset-0 z-0">
       <Canvas
@@ -215,9 +230,9 @@ export default function ConstellationBackground() {
         gl={{ antialias: true, alpha: true }}
         style={{ background: 'transparent' }}
       >
-        <ambientLight intensity={0.1} />
-        <Particles count={70} />
-        <PoseSkeleton />
+        <ambientLight intensity={dark ? 0.1 : 0.3} />
+        <Particles count={70} dark={dark} />
+        <PoseSkeleton dark={dark} />
       </Canvas>
     </div>
   );

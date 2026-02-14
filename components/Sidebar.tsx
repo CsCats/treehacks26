@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/AuthContext';
+import ThemeToggle from '@/components/ThemeToggle';
 
 const homeItem = {
   href: '/',
@@ -123,14 +124,14 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="fixed left-0 top-0 z-40 flex h-screen w-16 flex-col items-center border-r border-zinc-800/60 bg-zinc-950/80 backdrop-blur-xl transition-all duration-300 hover:w-48 group/sidebar">
+    <aside className="fixed left-0 top-0 z-40 flex h-screen w-16 flex-col items-center border-r border-zinc-200 bg-white/90 backdrop-blur-xl transition-all duration-300 hover:w-48 group/sidebar dark:border-zinc-800/60 dark:bg-zinc-950/80">
       {/* Logo */}
-      <div className="flex h-16 w-full items-center border-b border-zinc-800/40 overflow-hidden px-[14px]">
+      <div className="flex h-16 w-full items-center border-b border-zinc-200 overflow-hidden px-[14px] dark:border-zinc-800/40">
         <Link href="/" className="flex items-center gap-2">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 text-xs font-bold text-white">
             R
           </div>
-          <span className="whitespace-nowrap text-sm font-semibold text-white opacity-0 transition-opacity duration-300 group-hover/sidebar:opacity-100">
+          <span className="whitespace-nowrap text-sm font-semibold text-zinc-900 opacity-0 transition-opacity duration-300 group-hover/sidebar:opacity-100 dark:text-white">
             RoboData
           </span>
         </Link>
@@ -147,8 +148,8 @@ export default function Sidebar() {
               className={`
                 relative flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all duration-200
                 ${isActive
-                  ? 'bg-zinc-800 text-white'
-                  : 'text-zinc-500 hover:bg-zinc-800/50 hover:text-zinc-300'
+                  ? 'bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:text-white'
+                  : 'text-zinc-500 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800/50 dark:hover:text-zinc-300'
                 }
               `}
             >
@@ -162,20 +163,23 @@ export default function Sidebar() {
             </Link>
           );
         })}
+        <div className="mt-auto pt-2">
+          <ThemeToggle />
+        </div>
       </nav>
 
       {/* Bottom section — auth */}
       <div className="mb-4 w-full px-2">
         {loading ? (
           <div className="flex items-center gap-3 rounded-lg px-3 py-2.5">
-            <div className="h-8 w-8 shrink-0 animate-pulse rounded-full bg-zinc-800" />
+            <div className="h-8 w-8 shrink-0 animate-pulse rounded-full bg-zinc-200 dark:bg-zinc-800" />
           </div>
         ) : user && profile ? (
           <div className="space-y-1">
             {/* User info — links to profile */}
             <Link
               href="/profile"
-              className="flex items-center gap-3 rounded-lg px-3 py-2 overflow-hidden transition hover:bg-zinc-800/50"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 overflow-hidden transition hover:bg-zinc-100 dark:hover:bg-zinc-800/50"
             >
               <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white ${
                 profile.role === 'business' ? 'bg-purple-600' : 'bg-blue-600'
@@ -183,7 +187,7 @@ export default function Sidebar() {
                 {(profile.displayName || profile.email)[0].toUpperCase()}
               </div>
               <div className="min-w-0 opacity-0 transition-opacity duration-300 group-hover/sidebar:opacity-100">
-                <div className="truncate text-sm font-medium text-white">
+                <div className="truncate text-sm font-medium text-zinc-900 dark:text-white">
                   {profile.displayName || 'User'}
                 </div>
                 <div className="truncate text-xs text-zinc-500">
@@ -194,7 +198,7 @@ export default function Sidebar() {
             {/* Sign out */}
             <button
               onClick={handleSignOut}
-              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-zinc-500 transition hover:bg-zinc-800/50 hover:text-red-400"
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-zinc-500 transition hover:bg-zinc-100 hover:text-red-600 dark:hover:bg-zinc-800/50 dark:hover:text-red-400"
             >
               <div className="shrink-0">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -211,7 +215,7 @@ export default function Sidebar() {
         ) : (
           <Link
             href="/login"
-            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-zinc-500 transition hover:bg-zinc-800/50 hover:text-zinc-300"
+            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800/50 dark:hover:text-zinc-300"
           >
             <div className="shrink-0">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
