@@ -72,6 +72,7 @@ export default function UserUploadClient() {
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [posePreviewFrameIndex, setPosePreviewFrameIndex] = useState(0);
   const [posePlaying, setPosePlaying] = useState(false);
+  const [faceBlurEnabled, setFaceBlurEnabled] = useState(true);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -82,6 +83,9 @@ export default function UserUploadClient() {
   const chunksRef = useRef<Blob[]>([]);
   const framesRef = useRef<PoseFrame[]>([]);
   const faceBlurCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const faceBlurEnabledRef = useRef(faceBlurEnabled);
+
+  faceBlurEnabledRef.current = faceBlurEnabled;
 
   // Create/revoke blob URL when recordedBlob changes
   useEffect(() => {
@@ -310,7 +314,7 @@ export default function UserUploadClient() {
       if (poses.length > 0) {
         const keypoints = poses[0].keypoints;
         setCurrentKeypoints(keypoints);
-        blurFaceRegion(ctx, keypoints, w, h);
+        if (faceBlurEnabledRef.current) blurFaceRegion(ctx, keypoints, w, h);
         drawKeypoints(keypoints, ctx, w, h, true);
 
         if (mediaRecorderRef.current?.state === 'recording') {
@@ -372,7 +376,7 @@ export default function UserUploadClient() {
     chunksRef.current = [];
     framesRef.current = [];
 
-    // Record from canvas (video + face blur + skeleton) for privacy
+    // Record from canvas (video + optional face blur + skeleton); blur follows checkbox
     const canvasStream = canvas.captureStream(30);
     const mediaRecorder = new MediaRecorder(canvasStream, { mimeType: 'video/webm' });
     mediaRecorderRef.current = mediaRecorder;
@@ -706,9 +710,27 @@ export default function UserUploadClient() {
               </div>
             )}
           </div>
-          <p className="mb-4 text-xs text-zinc-500">
-            Your face is blurred in the recording for privacy.
-          </p>
+          <label className="mb-4 flex items-center gap-2 text-sm text-zinc-400">
+            <input
+              type="checkbox"
+              checked={faceBlurEnabled}
+              onChange={(e) => setFaceBlurEnabled(e.target.checked)}
+              disabled={isRecording}
+              className="h-4 w-4 rounded border-zinc-600 bg-zinc-800 text-blue-500 focus:ring-blue-500"
+            />
+            <span>
+              {faceBlurEnabled
+                ? 'Blur my face in the recording'
+                : 'Face visible in recording'}
+            </span>
+          </label>
+          {isRecording && (
+            <p className="mb-4 text-xs text-zinc-500">
+              {faceBlurEnabled
+                ? 'Your face is blurred in this recording.'
+                : 'Face blur is off for this recording.'}
+            </p>
+          )}
 
           {modelLoaded && currentKeypoints.length > 0 && (
             <div className="mb-4">
