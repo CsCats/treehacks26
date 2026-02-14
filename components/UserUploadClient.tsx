@@ -17,6 +17,8 @@ interface Task {
   businessId: string;
   businessName: string;
   pricePerApproval: number;
+  deadline?: string | null;
+  status?: 'open' | 'closed';
   submissionCount: number;
 }
 
@@ -353,40 +355,71 @@ export default function UserUploadClient() {
           </div>
         ) : (
           <div className="grid w-full max-w-3xl gap-4">
-            {tasks.map(task => (
-              <button
-                key={task.id}
-                onClick={() => {
-                  setSelectedTask(task);
-                  setPhase('camera');
-                  setTimeout(() => startCamera(), 100);
-                }}
-                className="rounded-xl border border-zinc-800 bg-zinc-900 p-6 text-left transition hover:border-zinc-600 hover:bg-zinc-800"
-              >
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="text-lg font-semibold text-white">{task.title}</h3>
-                  {task.businessName && (
-                    <span className="rounded-full bg-purple-600/20 px-2.5 py-0.5 text-xs font-medium text-purple-400">
-                      {task.businessName}
+            {tasks.map(task => {
+              const isClosed = task.status === 'closed';
+              const isExpired = !isClosed && task.deadline ? new Date(task.deadline) < new Date() : false;
+              const isDisabled = isClosed || isExpired;
+
+              return (
+                <button
+                  key={task.id}
+                  onClick={() => {
+                    if (isDisabled) return;
+                    setSelectedTask(task);
+                    setPhase('camera');
+                    setTimeout(() => startCamera(), 100);
+                  }}
+                  disabled={isDisabled}
+                  className={`rounded-xl border p-6 text-left transition ${
+                    isDisabled
+                      ? 'border-zinc-800/50 bg-zinc-900/50 opacity-60 cursor-not-allowed'
+                      : 'border-zinc-800 bg-zinc-900 hover:border-zinc-600 hover:bg-zinc-800'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="text-lg font-semibold text-white">{task.title}</h3>
+                    {task.businessName && (
+                      <span className="rounded-full bg-purple-600/20 px-2.5 py-0.5 text-xs font-medium text-purple-400">
+                        {task.businessName}
+                      </span>
+                    )}
+                    {task.pricePerApproval > 0 && (
+                      <span className="rounded-full bg-green-500/10 px-2.5 py-0.5 text-xs font-medium text-green-400">
+                        ${task.pricePerApproval.toFixed(2)}/video
+                      </span>
+                    )}
+                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                      isClosed
+                        ? 'bg-red-500/10 text-red-400'
+                        : isExpired
+                        ? 'bg-yellow-500/10 text-yellow-400'
+                        : 'bg-emerald-500/10 text-emerald-400'
+                    }`}>
+                      {isClosed ? 'Closed' : isExpired ? 'Expired' : 'Open'}
                     </span>
+                  </div>
+                  <p className="mt-1 text-sm text-zinc-400">{task.description}</p>
+                  {task.requirements && (
+                    <p className="mt-2 text-xs text-zinc-500">
+                      <span className="font-medium text-zinc-400">Requirements:</span> {task.requirements}
+                    </p>
                   )}
-                  {task.pricePerApproval > 0 && (
-                    <span className="rounded-full bg-green-500/10 px-2.5 py-0.5 text-xs font-medium text-green-400">
-                      ${task.pricePerApproval.toFixed(2)}/video
-                    </span>
+                  <div className="mt-2 flex items-center gap-3 text-xs text-zinc-600">
+                    <span>{task.submissionCount || 0} submissions</span>
+                    {task.deadline && (
+                      <span>
+                        Deadline: {new Date(task.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </span>
+                    )}
+                  </div>
+                  {isDisabled && (
+                    <p className="mt-2 text-xs text-red-400/70">
+                      {isClosed ? 'This task is no longer accepting submissions.' : 'This task has passed its deadline.'}
+                    </p>
                   )}
-                </div>
-                <p className="mt-1 text-sm text-zinc-400">{task.description}</p>
-                {task.requirements && (
-                  <p className="mt-2 text-xs text-zinc-500">
-                    <span className="font-medium text-zinc-400">Requirements:</span> {task.requirements}
-                  </p>
-                )}
-                <p className="mt-2 text-xs text-zinc-600">
-                  {task.submissionCount || 0} submissions
-                </p>
-              </button>
-            ))}
+                </button>
+              );
+            })}
           </div>
         )}
       </div>

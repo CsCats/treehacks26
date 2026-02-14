@@ -18,6 +18,8 @@ interface Task {
   businessId: string;
   businessName: string;
   pricePerApproval: number;
+  deadline?: string | null;
+  status?: 'open' | 'closed';
   submissionCount: number;
   createdAt?: { seconds: number };
 }
@@ -71,6 +73,7 @@ export default function BusinessDashboard() {
   const [newDescription, setNewDescription] = useState('');
   const [newRequirements, setNewRequirements] = useState('');
   const [newPrice, setNewPrice] = useState('');
+  const [newDeadline, setNewDeadline] = useState('');
   const [creating, setCreating] = useState(false);
 
   useEffect(() => {
@@ -108,6 +111,7 @@ export default function BusinessDashboard() {
           description: newDescription,
           requirements: newRequirements,
           pricePerApproval: parseFloat(newPrice) || 0,
+          deadline: newDeadline || null,
           businessId: user!.uid,
           businessName: profile?.displayName || '',
         }),
@@ -118,6 +122,7 @@ export default function BusinessDashboard() {
         setNewDescription('');
         setNewRequirements('');
         setNewPrice('');
+        setNewDeadline('');
         setShowCreateForm(false);
         fetchTasks();
       }
@@ -166,6 +171,24 @@ export default function BusinessDashboard() {
       }
     } catch (err) {
       console.error('Failed to update submission status:', err);
+    }
+  };
+
+  const toggleTaskStatus = async (taskId: string, currentStatus: string) => {
+    const newStatus = currentStatus === 'closed' ? 'open' : 'closed';
+    try {
+      const res = await fetch('/api/tasks', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ taskId, status: newStatus }),
+      });
+      if (res.ok) {
+        setTasks(prev =>
+          prev.map(t => (t.id === taskId ? { ...t, status: newStatus } : t))
+        );
+      }
+    } catch (err) {
+      console.error('Failed to toggle task status:', err);
     }
   };
 
@@ -474,6 +497,18 @@ export default function BusinessDashboard() {
                 </div>
                 <p className="mt-1 text-xs text-zinc-600">Amount paid to contributor per approved submission</p>
               </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-zinc-400">
+                  Deadline (optional)
+                </label>
+                <input
+                  type="date"
+                  value={newDeadline}
+                  onChange={e => setNewDeadline(e.target.value)}
+                  className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-white placeholder-zinc-500 focus:border-blue-500 focus:outline-none"
+                />
+                <p className="mt-1 text-xs text-zinc-600">Task will auto-show as expired after this date</p>
+              </div>
               <button
                 type="submit"
                 disabled={creating}
@@ -499,13 +534,26 @@ export default function BusinessDashboard() {
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="text-lg font-semibold">{task.title}</h3>
                       {task.pricePerApproval > 0 && (
                         <span className="rounded-full bg-green-500/10 px-2.5 py-0.5 text-xs font-medium text-green-400">
                           ${task.pricePerApproval.toFixed(2)}/video
                         </span>
                       )}
+                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                        task.status === 'closed'
+                          ? 'bg-red-500/10 text-red-400'
+                          : task.deadline && new Date(task.deadline) < new Date()
+                          ? 'bg-yellow-500/10 text-yellow-400'
+                          : 'bg-emerald-500/10 text-emerald-400'
+                      }`}>
+                        {task.status === 'closed'
+                          ? 'Closed'
+                          : task.deadline && new Date(task.deadline) < new Date()
+                          ? 'Expired'
+                          : 'Open'}
+                      </span>
                     </div>
                     <p className="mt-1 text-sm text-zinc-400">{task.description}</p>
                     {task.requirements && (
@@ -514,11 +562,27 @@ export default function BusinessDashboard() {
                         {task.requirements}
                       </p>
                     )}
+                    {task.deadline && (
+                      <p className="mt-1 text-xs text-zinc-500">
+                        <span className="font-medium text-zinc-400">Deadline:</span>{' '}
+                        {new Date(task.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </p>
+                    )}
                   </div>
                   <div className="ml-4 flex flex-col items-end gap-2">
                     <span className="rounded-full bg-zinc-800 px-3 py-1 text-sm text-zinc-300">
                       {task.submissionCount || 0} submissions
                     </span>
+                    <button
+                      onClick={() => toggleTaskStatus(task.id, task.status || 'open')}
+                      className={`rounded-lg px-4 py-1.5 text-xs font-medium ${
+                        task.status === 'closed'
+                          ? 'bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30'
+                          : 'bg-red-600/20 text-red-400 hover:bg-red-600/30'
+                      }`}
+                    >
+                      {task.status === 'closed' ? 'Reopen' : 'Close Task'}
+                    </button>
                     <button
                       onClick={() => viewSubmissions(task)}
                       className="rounded-lg bg-zinc-700 px-4 py-1.5 text-sm font-medium text-white hover:bg-zinc-600"
