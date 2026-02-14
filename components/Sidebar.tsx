@@ -113,8 +113,8 @@ export default function Sidebar() {
   return (
     <aside className="fixed left-0 top-0 z-40 flex h-screen w-16 flex-col items-center border-r border-zinc-800/60 bg-zinc-950/80 backdrop-blur-xl transition-all duration-300 hover:w-48 group/sidebar">
       {/* Logo */}
-      <div className="flex h-16 w-full items-center justify-center border-b border-zinc-800/40">
-        <Link href="/" className="flex items-center gap-2 overflow-hidden">
+      <div className="flex h-16 w-full items-center border-b border-zinc-800/40 overflow-hidden px-[14px]">
+        <Link href="/" className="flex items-center gap-2">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 text-xs font-bold text-white">
             R
           </div>
