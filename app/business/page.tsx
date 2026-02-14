@@ -19,6 +19,7 @@ interface Task {
   businessName: string;
   pricePerApproval: number;
   deadline?: string | null;
+  webhookUrl?: string | null;
   status?: 'open' | 'closed';
   submissionCount: number;
   createdAt?: { seconds: number };
@@ -75,7 +76,18 @@ export default function BusinessDashboard() {
   const [newRequirements, setNewRequirements] = useState('');
   const [newPrice, setNewPrice] = useState('');
   const [newDeadline, setNewDeadline] = useState('');
+  const [newWebhookUrl, setNewWebhookUrl] = useState('');
   const [creating, setCreating] = useState(false);
+
+  // Edit task
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editRequirements, setEditRequirements] = useState('');
+  const [editPrice, setEditPrice] = useState('');
+  const [editDeadline, setEditDeadline] = useState('');
+  const [editWebhookUrl, setEditWebhookUrl] = useState('');
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!authLoading && (!user || profile?.role !== 'business')) {
@@ -113,6 +125,7 @@ export default function BusinessDashboard() {
           requirements: newRequirements,
           pricePerApproval: parseFloat(newPrice) || 0,
           deadline: newDeadline || null,
+          webhookUrl: newWebhookUrl || null,
           businessId: user!.uid,
           businessName: profile?.displayName || '',
         }),
@@ -124,6 +137,7 @@ export default function BusinessDashboard() {
         setNewRequirements('');
         setNewPrice('');
         setNewDeadline('');
+        setNewWebhookUrl('');
         setShowCreateForm(false);
         fetchTasks();
       }
@@ -192,6 +206,62 @@ export default function BusinessDashboard() {
       }
     } catch (err) {
       console.error('Failed to rate submission:', err);
+    }
+  };
+
+  const startEditTask = (task: Task) => {
+    setEditingTaskId(task.id);
+    setEditTitle(task.title);
+    setEditDescription(task.description);
+    setEditRequirements(task.requirements || '');
+    setEditPrice(task.pricePerApproval > 0 ? task.pricePerApproval.toString() : '');
+    setEditDeadline(task.deadline || '');
+    setEditWebhookUrl(task.webhookUrl || '');
+  };
+
+  const cancelEdit = () => {
+    setEditingTaskId(null);
+  };
+
+  const saveEditTask = async () => {
+    if (!editingTaskId || !editTitle.trim() || !editDescription.trim()) return;
+    setSaving(true);
+    try {
+      const res = await fetch('/api/tasks', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          taskId: editingTaskId,
+          title: editTitle,
+          description: editDescription,
+          requirements: editRequirements,
+          pricePerApproval: parseFloat(editPrice) || 0,
+          deadline: editDeadline || null,
+          webhookUrl: editWebhookUrl || null,
+        }),
+      });
+      if (res.ok) {
+        setTasks(prev =>
+          prev.map(t =>
+            t.id === editingTaskId
+              ? {
+                  ...t,
+                  title: editTitle,
+                  description: editDescription,
+                  requirements: editRequirements,
+                  pricePerApproval: parseFloat(editPrice) || 0,
+                  deadline: editDeadline || null,
+                  webhookUrl: editWebhookUrl || null,
+                }
+              : t
+          )
+        );
+        setEditingTaskId(null);
+      }
+    } catch (err) {
+      console.error('Failed to update task:', err);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -555,6 +625,19 @@ export default function BusinessDashboard() {
                 />
                 <p className="mt-1 text-xs text-zinc-600">Task will auto-show as expired after this date</p>
               </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-zinc-400">
+                  Webhook URL (optional)
+                </label>
+                <input
+                  type="url"
+                  value={newWebhookUrl}
+                  onChange={e => setNewWebhookUrl(e.target.value)}
+                  placeholder="https://your-server.com/webhook"
+                  className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-white placeholder-zinc-500 focus:border-blue-500 focus:outline-none"
+                />
+                <p className="mt-1 text-xs text-zinc-600">Receive a POST request whenever a new submission arrives</p>
+              </div>
               <button
                 type="submit"
                 disabled={creating}
@@ -578,65 +661,166 @@ export default function BusinessDashboard() {
                 key={task.id}
                 className="rounded-xl border border-zinc-800 bg-zinc-900 p-6 transition hover:border-zinc-700"
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="text-lg font-semibold">{task.title}</h3>
-                      {task.pricePerApproval > 0 && (
-                        <span className="rounded-full bg-green-500/10 px-2.5 py-0.5 text-xs font-medium text-green-400">
-                          ${task.pricePerApproval.toFixed(2)}/video
-                        </span>
-                      )}
-                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                        task.status === 'closed'
-                          ? 'bg-red-500/10 text-red-400'
-                          : task.deadline && new Date(task.deadline) < new Date()
-                          ? 'bg-yellow-500/10 text-yellow-400'
-                          : 'bg-emerald-500/10 text-emerald-400'
-                      }`}>
-                        {task.status === 'closed'
-                          ? 'Closed'
-                          : task.deadline && new Date(task.deadline) < new Date()
-                          ? 'Expired'
-                          : 'Open'}
-                      </span>
+                {editingTaskId === task.id ? (
+                  /* Edit mode */
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-sm font-semibold text-zinc-400">Edit Task</h3>
+                      <button onClick={cancelEdit} className="text-xs text-zinc-500 hover:text-zinc-300">Cancel</button>
                     </div>
-                    <p className="mt-1 text-sm text-zinc-400">{task.description}</p>
-                    {task.requirements && (
-                      <p className="mt-2 text-xs text-zinc-500">
-                        <span className="font-medium text-zinc-400">Requirements:</span>{' '}
-                        {task.requirements}
-                      </p>
-                    )}
-                    {task.deadline && (
-                      <p className="mt-1 text-xs text-zinc-500">
-                        <span className="font-medium text-zinc-400">Deadline:</span>{' '}
-                        {new Date(task.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                      </p>
-                    )}
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-zinc-500">Title</label>
+                      <input
+                        type="text"
+                        value={editTitle}
+                        onChange={e => setEditTitle(e.target.value)}
+                        className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-zinc-500">Description</label>
+                      <textarea
+                        value={editDescription}
+                        onChange={e => setEditDescription(e.target.value)}
+                        rows={2}
+                        className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-zinc-500">Requirements</label>
+                      <textarea
+                        value={editRequirements}
+                        onChange={e => setEditRequirements(e.target.value)}
+                        rows={2}
+                        className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-zinc-500">Price per Video ($)</label>
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={editPrice}
+                          onChange={e => setEditPrice(e.target.value)}
+                          className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-zinc-500">Deadline</label>
+                        <input
+                          type="date"
+                          value={editDeadline}
+                          onChange={e => setEditDeadline(e.target.value)}
+                          className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-zinc-500">Webhook URL</label>
+                      <input
+                        type="url"
+                        value={editWebhookUrl}
+                        onChange={e => setEditWebhookUrl(e.target.value)}
+                        placeholder="https://your-server.com/webhook"
+                        className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white placeholder-zinc-600 focus:border-blue-500 focus:outline-none"
+                      />
+                    </div>
+                    <div className="flex gap-2 pt-1">
+                      <button
+                        onClick={saveEditTask}
+                        disabled={saving || !editTitle.trim() || !editDescription.trim()}
+                        className="rounded-lg bg-blue-600 px-5 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                      >
+                        {saving ? 'Saving...' : 'Save Changes'}
+                      </button>
+                      <button
+                        onClick={cancelEdit}
+                        className="rounded-lg border border-zinc-700 px-5 py-2 text-sm font-medium text-zinc-400 hover:border-zinc-600 hover:text-white"
+                      >
+                        Cancel
+                      </button>
+                    </div>
                   </div>
-                  <div className="ml-4 flex flex-col items-end gap-2">
-                    <span className="rounded-full bg-zinc-800 px-3 py-1 text-sm text-zinc-300">
-                      {task.submissionCount || 0} submissions
-                    </span>
-                    <button
-                      onClick={() => toggleTaskStatus(task.id, task.status || 'open')}
-                      className={`rounded-lg px-4 py-1.5 text-xs font-medium ${
-                        task.status === 'closed'
-                          ? 'bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30'
-                          : 'bg-red-600/20 text-red-400 hover:bg-red-600/30'
-                      }`}
-                    >
-                      {task.status === 'closed' ? 'Reopen' : 'Close Task'}
-                    </button>
-                    <button
-                      onClick={() => viewSubmissions(task)}
-                      className="rounded-lg bg-zinc-700 px-4 py-1.5 text-sm font-medium text-white hover:bg-zinc-600"
-                    >
-                      View Submissions
-                    </button>
+                ) : (
+                  /* View mode */
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="text-lg font-semibold">{task.title}</h3>
+                        {task.pricePerApproval > 0 && (
+                          <span className="rounded-full bg-green-500/10 px-2.5 py-0.5 text-xs font-medium text-green-400">
+                            ${task.pricePerApproval.toFixed(2)}/video
+                          </span>
+                        )}
+                        <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                          task.status === 'closed'
+                            ? 'bg-red-500/10 text-red-400'
+                            : task.deadline && new Date(task.deadline) < new Date()
+                            ? 'bg-yellow-500/10 text-yellow-400'
+                            : 'bg-emerald-500/10 text-emerald-400'
+                        }`}>
+                          {task.status === 'closed'
+                            ? 'Closed'
+                            : task.deadline && new Date(task.deadline) < new Date()
+                            ? 'Expired'
+                            : 'Open'}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-sm text-zinc-400">{task.description}</p>
+                      {task.requirements && (
+                        <p className="mt-2 text-xs text-zinc-500">
+                          <span className="font-medium text-zinc-400">Requirements:</span>{' '}
+                          {task.requirements}
+                        </p>
+                      )}
+                      {task.deadline && (
+                        <p className="mt-1 text-xs text-zinc-500">
+                          <span className="font-medium text-zinc-400">Deadline:</span>{' '}
+                          {new Date(task.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </p>
+                      )}
+                      {task.webhookUrl && (
+                        <p className="mt-1 flex items-center gap-1 text-xs text-zinc-500">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                          </svg>
+                          <span className="font-medium text-zinc-400">Webhook:</span>{' '}
+                          <span className="truncate max-w-[300px]">{task.webhookUrl}</span>
+                        </p>
+                      )}
+                    </div>
+                    <div className="ml-4 flex flex-col items-end gap-2">
+                      <span className="rounded-full bg-zinc-800 px-3 py-1 text-sm text-zinc-300">
+                        {task.submissionCount || 0} submissions
+                      </span>
+                      <button
+                        onClick={() => startEditTask(task)}
+                        className="rounded-lg bg-zinc-700 px-4 py-1.5 text-xs font-medium text-zinc-300 hover:bg-zinc-600 hover:text-white"
+                      >
+                        Edit Task
+                      </button>
+                      <button
+                        onClick={() => toggleTaskStatus(task.id, task.status || 'open')}
+                        className={`rounded-lg px-4 py-1.5 text-xs font-medium ${
+                          task.status === 'closed'
+                            ? 'bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30'
+                            : 'bg-red-600/20 text-red-400 hover:bg-red-600/30'
+                        }`}
+                      >
+                        {task.status === 'closed' ? 'Reopen' : 'Close Task'}
+                      </button>
+                      <button
+                        onClick={() => viewSubmissions(task)}
+                        className="rounded-lg bg-zinc-700 px-4 py-1.5 text-sm font-medium text-white hover:bg-zinc-600"
+                      >
+                        View Submissions
+                      </button>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             ))}
           </div>

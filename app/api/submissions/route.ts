@@ -112,6 +112,29 @@ export async function POST(request: NextRequest) {
       submissionCount: increment(1),
     });
 
+    // Fire webhook if configured (fire-and-forget)
+    const taskSnap = await getDoc(taskRef);
+    if (taskSnap.exists()) {
+      const taskData = taskSnap.data();
+      if (taskData.webhookUrl) {
+        fetch(taskData.webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            event: 'submission.created',
+            submissionId: submissionDoc.id,
+            taskId,
+            taskTitle: taskData.title || '',
+            contributorId: contributorId || '',
+            contributorName: contributorName || '',
+            videoUrl,
+            poseUrl,
+            createdAt: new Date().toISOString(),
+          }),
+        }).catch(err => console.error('Webhook delivery failed:', err));
+      }
+    }
+
     return NextResponse.json({
       id: submissionDoc.id,
       videoUrl,

@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { title, description, requirements, businessId, businessName, pricePerApproval, deadline } = body;
+    const { title, description, requirements, businessId, businessName, pricePerApproval, deadline, webhookUrl } = body;
 
     if (!title || !description || !businessId) {
       return NextResponse.json(
@@ -46,12 +46,13 @@ export async function POST(request: NextRequest) {
       businessName: businessName || '',
       pricePerApproval: Number(pricePerApproval) || 0,
       deadline: deadline || null,
+      webhookUrl: webhookUrl || null,
       status: 'open',
       submissionCount: 0,
       createdAt: serverTimestamp(),
     });
 
-    return NextResponse.json({ id: docRef.id, title, description, requirements, businessId, businessName, pricePerApproval: Number(pricePerApproval) || 0, deadline: deadline || null, status: 'open' });
+    return NextResponse.json({ id: docRef.id, title, description, requirements, businessId, businessName, pricePerApproval: Number(pricePerApproval) || 0, deadline: deadline || null, webhookUrl: webhookUrl || null, status: 'open' });
   } catch (error) {
     console.error('Error creating task:', error);
     return NextResponse.json({ error: 'Failed to create task' }, { status: 500 });
@@ -61,7 +62,7 @@ export async function POST(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json();
-    const { taskId, status, deadline } = body;
+    const { taskId, title, description, requirements, pricePerApproval, status, deadline, webhookUrl } = body;
 
     if (!taskId) {
       return NextResponse.json({ error: 'taskId is required' }, { status: 400 });
@@ -69,6 +70,11 @@ export async function PATCH(request: NextRequest) {
 
     const taskRef = doc(db, 'tasks', taskId);
     const updateData: Record<string, unknown> = {};
+
+    if (title !== undefined) updateData.title = title;
+    if (description !== undefined) updateData.description = description;
+    if (requirements !== undefined) updateData.requirements = requirements;
+    if (pricePerApproval !== undefined) updateData.pricePerApproval = Number(pricePerApproval) || 0;
 
     if (status !== undefined) {
       if (!['open', 'closed'].includes(status)) {
@@ -79,6 +85,10 @@ export async function PATCH(request: NextRequest) {
 
     if (deadline !== undefined) {
       updateData.deadline = deadline || null;
+    }
+
+    if (webhookUrl !== undefined) {
+      updateData.webhookUrl = webhookUrl || null;
     }
 
     await updateDoc(taskRef, updateData);
