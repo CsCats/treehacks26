@@ -146,6 +146,27 @@ export default function Home() {
                     Manage Billing →
                   </div>
                 </Link>
+
+                <Link
+                  href="/developer"
+                  className="group rounded-2xl border border-zinc-800 bg-zinc-900 p-8 transition hover:border-cyan-500/50 hover:bg-zinc-900/80"
+                >
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-cyan-600/20">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#06b6d4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="16 18 22 12 16 6" />
+                      <polyline points="8 6 2 12 8 18" />
+                    </svg>
+                  </div>
+                  <h2 className="mb-2 text-xl font-semibold group-hover:text-cyan-400">
+                    Developer Integration
+                  </h2>
+                  <p className="text-sm text-zinc-400">
+                    Create API endpoints to programmatically access your training data.
+                  </p>
+                  <div className="mt-4 text-sm font-medium text-cyan-400 group-hover:text-cyan-300">
+                    Manage APIs →
+                  </div>
+                </Link>
               </>
             )}
           </div>
