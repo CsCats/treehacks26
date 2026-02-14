@@ -28,6 +28,7 @@ interface Submission {
   contributorId?: string;
   contributorName?: string;
   status?: 'pending' | 'approved' | 'rejected';
+  feedback?: string;
   videoUrl: string;
   poseUrl: string;
   poseData: PoseFrame[];
@@ -59,6 +60,10 @@ export default function BusinessDashboard() {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loadingSubmissions, setLoadingSubmissions] = useState(false);
   const [expandedSubmission, setExpandedSubmission] = useState<string | null>(null);
+
+  // Reject feedback
+  const [rejectingId, setRejectingId] = useState<string | null>(null);
+  const [rejectFeedback, setRejectFeedback] = useState('');
 
   // Create task form
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -139,20 +144,22 @@ export default function BusinessDashboard() {
     }
   };
 
-  const updateSubmissionStatus = async (submissionId: string, status: 'approved' | 'rejected') => {
+  const updateSubmissionStatus = async (submissionId: string, status: 'approved' | 'rejected', feedback?: string) => {
     try {
       const res = await fetch('/api/submissions', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ submissionId, status }),
+        body: JSON.stringify({ submissionId, status, feedback: feedback || undefined }),
       });
       if (res.ok) {
         setSubmissions(prev =>
-          prev.map(s => (s.id === submissionId ? { ...s, status } : s))
+          prev.map(s => (s.id === submissionId ? { ...s, status, feedback: feedback || s.feedback } : s))
         );
         if (status === 'approved') {
           await refreshProfile();
         }
+        setRejectingId(null);
+        setRejectFeedback('');
       } else {
         const err = await res.json();
         alert(err.error || 'Failed to update submission');
@@ -265,7 +272,7 @@ export default function BusinessDashboard() {
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      {(!sub.status || sub.status === 'pending') && (
+                      {(!sub.status || sub.status === 'pending') && rejectingId !== sub.id && (
                         <>
                           <button
                             onClick={e => { e.stopPropagation(); updateSubmissionStatus(sub.id, 'approved'); }}
@@ -274,12 +281,17 @@ export default function BusinessDashboard() {
                             Approve
                           </button>
                           <button
-                            onClick={e => { e.stopPropagation(); updateSubmissionStatus(sub.id, 'rejected'); }}
+                            onClick={e => { e.stopPropagation(); setRejectingId(sub.id); setRejectFeedback(''); }}
                             className="rounded bg-red-600/20 px-3 py-1 text-xs font-medium text-red-400 hover:bg-red-600/30"
                           >
                             Reject
                           </button>
                         </>
+                      )}
+                      {sub.status === 'rejected' && sub.feedback && (
+                        <span className="text-xs text-zinc-500 italic max-w-[200px] truncate" title={sub.feedback}>
+                          &quot;{sub.feedback}&quot;
+                        </span>
                       )}
                       <a
                         href={sub.videoUrl}
@@ -304,6 +316,36 @@ export default function BusinessDashboard() {
                       </span>
                     </div>
                   </div>
+
+                  {/* Reject feedback input */}
+                  {rejectingId === sub.id && (
+                    <div className="flex items-center gap-2 border-t border-zinc-800 px-4 py-3 bg-zinc-900/50" onClick={e => e.stopPropagation()}>
+                      <input
+                        type="text"
+                        value={rejectFeedback}
+                        onChange={e => setRejectFeedback(e.target.value)}
+                        placeholder="Add feedback (e.g., lighting too dark, please resubmit)..."
+                        className="flex-1 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-sm text-white placeholder-zinc-500 focus:border-red-500 focus:outline-none"
+                        autoFocus
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') updateSubmissionStatus(sub.id, 'rejected', rejectFeedback);
+                          if (e.key === 'Escape') { setRejectingId(null); setRejectFeedback(''); }
+                        }}
+                      />
+                      <button
+                        onClick={() => updateSubmissionStatus(sub.id, 'rejected', rejectFeedback)}
+                        className="rounded-lg bg-red-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-red-700"
+                      >
+                        Reject
+                      </button>
+                      <button
+                        onClick={() => { setRejectingId(null); setRejectFeedback(''); }}
+                        className="rounded-lg px-3 py-1.5 text-xs text-zinc-500 hover:text-zinc-300"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  )}
 
                   {expandedSubmission === sub.id && (
                     <div className="border-t border-zinc-800 p-4">

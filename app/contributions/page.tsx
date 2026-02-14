@@ -9,6 +9,7 @@ interface Submission {
   taskId: string;
   businessName?: string;
   status: 'pending' | 'approved' | 'rejected';
+  feedback?: string;
   videoUrl: string;
   poseUrl: string;
   createdAt?: { seconds: number };
@@ -151,6 +152,16 @@ export default function ContributionsPage() {
                           minute: '2-digit',
                         })}
                       </p>
+                    )}
+                    {sub.status === 'rejected' && sub.feedback && (
+                      <div className="mt-2 flex items-start gap-2 rounded-lg bg-red-500/5 border border-red-500/10 px-3 py-2">
+                        <svg className="mt-0.5 shrink-0" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="12" cy="12" r="10" />
+                          <line x1="12" y1="8" x2="12" y2="12" />
+                          <line x1="12" y1="16" x2="12.01" y2="16" />
+                        </svg>
+                        <p className="text-xs text-red-300">{sub.feedback}</p>
+                      </div>
                     )}
                   </div>
 
