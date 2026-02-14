@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useAuth } from '@/lib/AuthContext';
+import ContributionGraph from '@/components/ContributionGraph';
 
 export default function Home() {
   const { user, profile, loading } = useAuth();
@@ -99,6 +100,12 @@ export default function Home() {
                   View Earnings →
                 </div>
               </Link>
+            )}
+
+            {profile.role === 'contributor' && (
+              <div className="md:col-span-2">
+                <ContributionGraph />
+              </div>
             )}
 
             {profile.role === 'business' && (
