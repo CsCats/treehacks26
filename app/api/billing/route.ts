@@ -3,11 +3,13 @@ import { db } from '@/lib/firebase';
 import {
   doc,
   getDoc,
+  getDocFromServer,
   updateDoc,
   increment,
   collection,
   addDoc,
   getDocs,
+  getDocsFromServer,
   query,
   where,
   orderBy,
@@ -24,14 +26,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'userId is required' }, { status: 400 });
     }
 
-    // Get user balance
-    const userDoc = await getDoc(doc(db, 'users', userId));
+    // Get user balance (bypass cache)
+    const userDoc = await getDocFromServer(doc(db, 'users', userId));
     if (!userDoc.exists()) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
     const balance = userDoc.data().balance || 0;
 
-    // Get transactions
+    // Get transactions (bypass cache)
     let transactions;
     try {
       const q = query(
@@ -39,16 +41,22 @@ export async function GET(request: NextRequest) {
         where('userId', '==', userId),
         orderBy('createdAt', 'desc')
       );
-      const snapshot = await getDocs(q);
+      const snapshot = await getDocsFromServer(q);
       transactions = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
     } catch {
-      // If index doesn't exist yet, fetch without ordering
+      // If index doesn't exist yet, fetch without ordering and sort client-side
       const q = query(
         collection(db, 'transactions'),
         where('userId', '==', userId)
       );
-      const snapshot = await getDocs(q);
-      transactions = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      const snapshot = await getDocsFromServer(q);
+      transactions = snapshot.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .sort((a: Record<string, unknown>, b: Record<string, unknown>) => {
+          const aTime = (a.createdAt as { seconds?: number })?.seconds || 0;
+          const bTime = (b.createdAt as { seconds?: number })?.seconds || 0;
+          return bTime - aTime;
+        });
     }
 
     return NextResponse.json({ balance, transactions });
@@ -84,8 +92,8 @@ export async function POST(request: NextRequest) {
       createdAt: serverTimestamp(),
     });
 
-    // Get updated balance
-    const updatedDoc = await getDoc(userRef);
+    // Get updated balance (bypass cache)
+    const updatedDoc = await getDocFromServer(userRef);
     const newBalance = updatedDoc.data()?.balance || 0;
 
     return NextResponse.json({ balance: newBalance });
