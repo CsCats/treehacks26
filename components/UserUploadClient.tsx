@@ -13,6 +13,8 @@ interface Task {
   title: string;
   description: string;
   requirements: string;
+  businessId: string;
+  businessName: string;
   submissionCount: number;
 }
 
@@ -296,6 +298,7 @@ export default function UserUploadClient() {
       formData.append('video', recordedBlob, 'recording.webm');
       formData.append('poseData', JSON.stringify(recordedFrames));
       formData.append('taskId', selectedTask.id);
+      formData.append('businessId', selectedTask.businessId || '');
 
       const res = await fetch('/api/submissions', { method: 'POST', body: formData });
       if (res.ok) {
@@ -355,7 +358,14 @@ export default function UserUploadClient() {
                 }}
                 className="rounded-xl border border-zinc-800 bg-zinc-900 p-6 text-left transition hover:border-zinc-600 hover:bg-zinc-800"
               >
-                <h3 className="text-lg font-semibold text-white">{task.title}</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-lg font-semibold text-white">{task.title}</h3>
+                  {task.businessName && (
+                    <span className="rounded-full bg-purple-600/20 px-2.5 py-0.5 text-xs font-medium text-purple-400">
+                      {task.businessName}
+                    </span>
+                  )}
+                </div>
                 <p className="mt-1 text-sm text-zinc-400">{task.description}</p>
                 {task.requirements && (
                   <p className="mt-2 text-xs text-zinc-500">

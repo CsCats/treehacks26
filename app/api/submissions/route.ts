@@ -19,11 +19,18 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const taskId = searchParams.get('taskId');
 
+    const businessId = searchParams.get('businessId');
+
     let q;
     if (taskId) {
       q = query(
         collection(db, 'submissions'),
         where('taskId', '==', taskId)
+      );
+    } else if (businessId) {
+      q = query(
+        collection(db, 'submissions'),
+        where('businessId', '==', businessId)
       );
     } else {
       q = query(collection(db, 'submissions'));
@@ -48,6 +55,9 @@ export async function POST(request: NextRequest) {
     const videoFile = formData.get('video') as File | null;
     const poseDataStr = formData.get('poseData') as string | null;
     const taskId = formData.get('taskId') as string | null;
+    const businessId = formData.get('businessId') as string | null;
+    const contributorId = formData.get('contributorId') as string | null;
+    const contributorName = formData.get('contributorName') as string | null;
 
     if (!videoFile || !poseDataStr || !taskId) {
       return NextResponse.json(
@@ -78,6 +88,7 @@ export async function POST(request: NextRequest) {
     // Save submission metadata to Firestore
     const submissionDoc = await addDoc(collection(db, 'submissions'), {
       taskId,
+      businessId: businessId || '',
       videoUrl,
       poseUrl,
       poseData,

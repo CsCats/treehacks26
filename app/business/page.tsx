@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
+import { useAuth } from '@/lib/AuthContext';
 
 const PoseSkeletonViewer = dynamic(() => import('@/components/PoseSkeletonViewer'), {
   ssr: false,
@@ -13,6 +15,8 @@ interface Task {
   title: string;
   description: string;
   requirements: string;
+  businessId: string;
+  businessName: string;
   submissionCount: number;
   createdAt?: { seconds: number };
 }
@@ -42,6 +46,9 @@ interface PoseFrame {
 type View = 'tasks' | 'submissions';
 
 export default function BusinessDashboard() {
+  const router = useRouter();
+  const { user, profile, loading: authLoading } = useAuth();
+
   const [view, setView] = useState<View>('tasks');
   const [tasks, setTasks] = useState<Task[]>([]);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -57,12 +64,19 @@ export default function BusinessDashboard() {
   const [creating, setCreating] = useState(false);
 
   useEffect(() => {
-    fetchTasks();
-  }, []);
+    if (!authLoading && (!user || profile?.role !== 'business')) {
+      router.push('/');
+      return;
+    }
+    if (user && profile?.role === 'business') {
+      fetchTasks();
+    }
+  }, [user, profile, authLoading]);
 
   const fetchTasks = async () => {
+    if (!user) return;
     try {
-      const res = await fetch('/api/tasks');
+      const res = await fetch(`/api/tasks?businessId=${user.uid}`);
       const data = await res.json();
       if (Array.isArray(data)) setTasks(data);
     } catch (err) {
@@ -83,6 +97,8 @@ export default function BusinessDashboard() {
           title: newTitle,
           description: newDescription,
           requirements: newRequirements,
+          businessId: user!.uid,
+          businessName: profile?.displayName || '',
         }),
       });
 
