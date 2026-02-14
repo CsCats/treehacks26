@@ -175,62 +175,60 @@ export default function ContributionGraph() {
       </div>
 
       {/* Graph */}
-      <div className="overflow-x-auto">
-        <div className="min-w-[720px]">
-          <div className="relative">
-            {/* Month labels */}
-            <div className="relative h-5 ml-10 mb-1">
-              {monthLabels.map((label, i) => (
-                <span
-                  key={`${label.month}-${i}`}
-                  className="absolute text-xs text-zinc-500"
-                  style={{ left: `${label.weekIndex * 14}px` }}
-                >
-                  {label.month}
-                </span>
+      <div className="w-full overflow-hidden">
+        <div className="relative">
+          {/* Month labels */}
+          <div className="relative h-5 mb-1 ml-7">
+            {monthLabels.map((label, i) => (
+              <span
+                key={`${label.month}-${i}`}
+                className="absolute text-xs text-zinc-500"
+                style={{ left: `${(label.weekIndex / weeks.length) * 100}%` }}
+              >
+                {label.month}
+              </span>
+            ))}
+          </div>
+
+          {/* Grid */}
+          <div className="flex gap-[3px]">
+            {/* Day labels */}
+            <div className="shrink-0 flex flex-col gap-[3px]">
+              {DAYS.map((d, i) => (
+                <div key={i} className="h-[10px] text-[10px] leading-[10px] text-zinc-500 w-6 text-right pr-1">
+                  {d}
+                </div>
               ))}
             </div>
 
-            {/* Grid */}
-            <div className="flex">
-              {/* Day labels */}
-              <div className="flex flex-col gap-[3px] mr-2 pt-0">
-                {DAYS.map((d, i) => (
-                  <div key={i} className="h-[11px] text-[10px] leading-[11px] text-zinc-500 w-7 text-right pr-1">
-                    {d}
-                  </div>
-                ))}
-              </div>
-
-              {/* Weeks */}
-              <div className="flex gap-[3px]">
-                {weeks.map((week, wi) => (
-                  <div key={wi} className="flex flex-col gap-[3px]">
-                    {week.map((day, di) => (
-                      <div
-                        key={day.key}
-                        className={`h-[11px] w-[11px] rounded-[2px] border ${
-                          day.count === -1
-                            ? 'bg-transparent border-transparent'
-                            : `${getColor(day.count)} ${getBorderColor(day.count)}`
-                        } transition-all duration-100 ${day.count >= 0 ? 'hover:scale-150 hover:z-10 cursor-pointer' : ''}`}
-                        onMouseEnter={(e) => {
-                          if (day.count >= 0) {
-                            const rect = e.currentTarget.getBoundingClientRect();
-                            setHoveredDay({
-                              date: day.date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }),
-                              count: day.count,
-                              x: rect.left + rect.width / 2,
-                              y: rect.top,
-                            });
-                          }
-                        }}
-                        onMouseLeave={() => setHoveredDay(null)}
-                      />
-                    ))}
-                  </div>
-                ))}
-              </div>
+            {/* Weeks — use flex with equal sizing */}
+            <div className="flex-1 flex justify-between">
+              {weeks.map((week, wi) => (
+                <div key={wi} className="flex flex-col gap-[3px]">
+                  {week.map((day) => (
+                    <div
+                      key={day.key}
+                      className={`h-[10px] w-[10px] rounded-[2px] border ${
+                        day.count === -1
+                          ? 'bg-transparent border-transparent'
+                          : `${getColor(day.count)} ${getBorderColor(day.count)}`
+                      } transition-all duration-100 ${day.count >= 0 ? 'hover:scale-150 hover:z-10 cursor-pointer' : ''}`}
+                      onMouseEnter={(e) => {
+                        if (day.count >= 0) {
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          setHoveredDay({
+                            date: day.date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }),
+                            count: day.count,
+                            x: rect.left + rect.width / 2,
+                            y: rect.top,
+                          });
+                        }
+                      }}
+                      onMouseLeave={() => setHoveredDay(null)}
+                    />
+                  ))}
+                </div>
+              ))}
             </div>
           </div>
         </div>
