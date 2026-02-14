@@ -3,7 +3,6 @@
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/AuthContext';
-import ThemeToggle from '@/components/ThemeToggle';
 
 const homeItem = {
   href: '/',
@@ -163,9 +162,6 @@ export default function Sidebar() {
             </Link>
           );
         })}
-        <div className="mt-auto pt-2">
-          <ThemeToggle />
-        </div>
       </nav>
 
       {/* Bottom section — auth */}
