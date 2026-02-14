@@ -400,7 +400,11 @@ export default function DeveloperPage() {
                           <label className="mb-1 block text-xs text-zinc-600">cURL</label>
                           <div className="flex items-start gap-2">
                             <pre className="flex-1 overflow-x-auto rounded-lg bg-zinc-800 p-3 text-xs text-zinc-300 font-mono">
-{`curl "${endpointUrl}"`}
+{`# Fetch all submissions
+curl "${endpointUrl}"
+
+# Filter by minimum rating (1-5)
+curl "${endpointUrl}?minRating=4"`}
                             </pre>
                             <button
                               onClick={() => copyToClipboard(`curl "${endpointUrl}"`, `curl-${ep.id}`)}
@@ -416,15 +420,21 @@ export default function DeveloperPage() {
                             <pre className="flex-1 overflow-x-auto rounded-lg bg-zinc-800 p-3 text-xs text-zinc-300 font-mono">
 {`import requests
 
+# Fetch all submissions
 response = requests.get("${endpointUrl}")
 data = response.json()
 print(f"Got {data['count']} submissions")
 for sub in data['submissions']:
-    print(sub['id'], sub.get('videoUrl', ''))`}
+    print(sub['id'], sub.get('rating'), sub.get('videoUrl', ''))
+
+# Filter by minimum rating
+response = requests.get("${endpointUrl}", params={"minRating": 4})
+high_quality = response.json()
+print(f"{high_quality['count']} submissions rated 4+ stars")`}
                             </pre>
                             <button
                               onClick={() => copyToClipboard(
-                                `import requests\n\nresponse = requests.get("${endpointUrl}")\ndata = response.json()\nprint(f"Got {data['count']} submissions")\nfor sub in data['submissions']:\n    print(sub['id'], sub.get('videoUrl', ''))`,
+                                `import requests\n\nresponse = requests.get("${endpointUrl}")\ndata = response.json()\nprint(f"Got {data['count']} submissions")\nfor sub in data['submissions']:\n    print(sub['id'], sub.get('rating'), sub.get('videoUrl', ''))\n\n# Filter by minimum rating\nresponse = requests.get("${endpointUrl}", params={"minRating": 4})\nhigh_quality = response.json()\nprint(f"{high_quality['count']} submissions rated 4+ stars")`,
                                 `python-${ep.id}`
                               )}
                               className="shrink-0 rounded bg-zinc-800 px-2 py-1 text-xs text-zinc-500 hover:text-white"
@@ -437,16 +447,22 @@ for sub in data['submissions']:
                           <label className="mb-1 block text-xs text-zinc-600">JavaScript</label>
                           <div className="flex items-start gap-2">
                             <pre className="flex-1 overflow-x-auto rounded-lg bg-zinc-800 p-3 text-xs text-zinc-300 font-mono">
-{`const res = await fetch("${endpointUrl}");
+{`// Fetch all submissions
+const res = await fetch("${endpointUrl}");
 const data = await res.json();
 console.log(\`Got \${data.count} submissions\`);
 data.submissions.forEach(sub => {
-  console.log(sub.id, sub.videoUrl);
-});`}
+  console.log(sub.id, sub.rating, sub.videoUrl);
+});
+
+// Filter by minimum rating (4+ stars)
+const filtered = await fetch("${endpointUrl}?minRating=4");
+const quality = await filtered.json();
+console.log(\`\${quality.count} high-quality submissions\`);`}
                             </pre>
                             <button
                               onClick={() => copyToClipboard(
-                                `const res = await fetch("${endpointUrl}");\nconst data = await res.json();\nconsole.log(\`Got \${data.count} submissions\`);\ndata.submissions.forEach(sub => {\n  console.log(sub.id, sub.videoUrl);\n});`,
+                                `const res = await fetch("${endpointUrl}");\nconst data = await res.json();\nconsole.log(\`Got \${data.count} submissions\`);\ndata.submissions.forEach(sub => {\n  console.log(sub.id, sub.rating, sub.videoUrl);\n});\n\n// Filter by minimum rating (4+ stars)\nconst filtered = await fetch("${endpointUrl}?minRating=4");\nconst quality = await filtered.json();\nconsole.log(\`\${quality.count} high-quality submissions\`);`,
                                 `js-${ep.id}`
                               )}
                               className="shrink-0 rounded bg-zinc-800 px-2 py-1 text-xs text-zinc-500 hover:text-white"
