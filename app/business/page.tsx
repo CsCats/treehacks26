@@ -24,6 +24,8 @@ interface Task {
 interface Submission {
   id: string;
   taskId: string;
+  contributorId?: string;
+  contributorName?: string;
   videoUrl: string;
   poseUrl: string;
   poseData: PoseFrame[];
@@ -205,9 +207,14 @@ export default function BusinessDashboard() {
                     }
                     className="flex w-full items-center justify-between p-4 text-left hover:bg-zinc-800/50"
                   >
-                    <div>
+                    <div className="flex items-center gap-2">
                       <span className="font-medium">Submission #{index + 1}</span>
-                      <span className="ml-3 text-sm text-zinc-500">
+                      {sub.contributorName && (
+                        <span className="rounded-full bg-blue-600/20 px-2.5 py-0.5 text-xs font-medium text-blue-400">
+                          {sub.contributorName}
+                        </span>
+                      )}
+                      <span className="text-sm text-zinc-500">
                         {sub.poseData?.length || 0} pose frames
                       </span>
                     </div>

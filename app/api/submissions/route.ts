@@ -89,6 +89,8 @@ export async function POST(request: NextRequest) {
     const submissionDoc = await addDoc(collection(db, 'submissions'), {
       taskId,
       businessId: businessId || '',
+      contributorId: contributorId || '',
+      contributorName: contributorName || '',
       videoUrl,
       poseUrl,
       poseData,

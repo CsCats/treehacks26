@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
+import { useAuth } from '@/lib/AuthContext';
 
 const PoseSkeletonViewer = dynamic(() => import('@/components/PoseSkeletonViewer'), {
   ssr: false,
@@ -52,6 +53,7 @@ function loadScript(src: string): Promise<void> {
 declare const window: any;
 
 export default function UserUploadClient() {
+  const { user, profile } = useAuth();
   const [phase, setPhase] = useState<AppPhase>('select-task');
   const [tasks, setTasks] = useState<Task[]>([]);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -299,6 +301,8 @@ export default function UserUploadClient() {
       formData.append('poseData', JSON.stringify(recordedFrames));
       formData.append('taskId', selectedTask.id);
       formData.append('businessId', selectedTask.businessId || '');
+      formData.append('contributorId', user?.uid || '');
+      formData.append('contributorName', profile?.displayName || '');
 
       const res = await fetch('/api/submissions', { method: 'POST', body: formData });
       if (res.ok) {
