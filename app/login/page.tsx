@@ -43,7 +43,7 @@ export default function LoginPage() {
         <div className="rounded-2xl border border-zinc-200 bg-white/80 p-8 shadow-xl backdrop-blur-sm dark:border-zinc-800/80 dark:bg-zinc-900/60 dark:shadow-2xl dark:shadow-black/20">
           <div className="mb-8 text-center">
             <h1 className="text-3xl font-bold tracking-tight">Welcome back</h1>
-            <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">Sign in to your RoboData account</p>
+            <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">Sign in to your OpenMotion account</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">

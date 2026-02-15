@@ -4,6 +4,9 @@ const nextConfig: NextConfig = {
   // Optimize output for serverless
   output: 'standalone',
 
+  // Ensure server can resolve these packages (avoids "Module not found" for API routes)
+  serverExternalPackages: ['@google/generative-ai'],
+
   // Skip type checking during build (faster)
   typescript: {
     ignoreBuildErrors: true,

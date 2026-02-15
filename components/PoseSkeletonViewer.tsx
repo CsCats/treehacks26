@@ -190,8 +190,9 @@ export default function PoseSkeletonViewer({ keypoints, width = 500, height = 40
   }
 
   return (
-    <div style={{ width, height }} className="rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700">
+    <div style={{ width, height, maxWidth: '100%' }} className="rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700">
       <Canvas
+        style={{ display: 'block' }}
         camera={{ position: [0, 0, 5], fov: 50 }}
         gl={{ powerPreference: 'low-power', antialias: false }}
         onCreated={({ gl }) => {

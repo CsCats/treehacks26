@@ -1083,12 +1083,11 @@ export default function UserUploadClient() {
         ← Back to Tasks
       </button>
 
-      <div className="mb-6 flex w-full max-w-5xl flex-col gap-6 lg:flex-row lg:items-start">
-        {/* Left: video + controls */}
-        <div className="flex flex-1 flex-col items-center">
-          <h1 className="mb-1 text-2xl font-bold">Record: {selectedTask?.title}</h1>
-          <p className="mb-4 text-sm text-zinc-500 dark:text-zinc-400">{selectedTask?.description}</p>
+      <h1 className="mb-4 w-full max-w-5xl text-2xl font-bold">Record: {selectedTask?.title}</h1>
 
+      <div className="mb-6 flex w-full max-w-5xl flex-col gap-6 lg:flex-row lg:items-start">
+        {/* Left: video + controls (aligned with right column) */}
+        <div className="flex flex-1 flex-col items-start">
           {loadingModel && (
             <div className="mb-4 rounded-lg bg-yellow-100 px-4 py-2 text-sm text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
               Loading pose detection model...
@@ -1133,83 +1132,91 @@ export default function UserUploadClient() {
             </p>
           )}
 
-          {modelLoaded && currentKeypoints.length > 0 && (
-            <div className="mb-4">
-              <div className="mb-2 flex items-center justify-between max-w-[400px]">
-                <h3 className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Live Preview</h3>
-                <div className="flex gap-1 rounded-lg bg-zinc-200 dark:bg-zinc-800 p-0.5">
-                  <button
-                    onClick={() => setViewMode('avatar')}
-                    className={`px-2 py-0.5 text-xs font-medium rounded transition ${
-                      viewMode === 'avatar'
-                        ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm'
-                        : 'text-zinc-600 dark:text-zinc-400'
-                    }`}
-                  >
-                    Avatar
-                  </button>
-                  <button
-                    onClick={() => setViewMode('skeleton')}
-                    className={`px-2 py-0.5 text-xs font-medium rounded transition ${
-                      viewMode === 'skeleton'
-                        ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm'
-                        : 'text-zinc-600 dark:text-zinc-400'
-                    }`}
-                  >
-                    Skeleton
-                  </button>
-                </div>
-              </div>
-              {viewMode === 'avatar' ? (
-                <PoseAvatarViewer keypoints={currentKeypoints} width={400} height={300} />
-              ) : (
-                <PoseSkeletonViewer keypoints={currentKeypoints} width={400} height={300} />
-              )}
-            </div>
-          )}
-
           <div className="flex gap-4">
-        {!stream ? (
-          <button
-            onClick={startCamera}
-            className="rounded-lg bg-blue-600 px-6 py-3 font-medium text-white hover:bg-blue-700"
-          >
-            Start Camera
-          </button>
-        ) : (
-          <>
-            {!isRecording ? (
+            {!stream ? (
               <button
-                onClick={startRecording}
-                disabled={!modelLoaded}
-                className="rounded-lg bg-red-500 px-6 py-3 font-medium text-white hover:bg-red-600 disabled:opacity-50"
+                onClick={startCamera}
+                className="rounded-lg bg-blue-600 px-6 py-3 font-medium text-white hover:bg-blue-700"
               >
-                {modelLoaded ? 'Start Recording' : 'Waiting for model...'}
+                Start Camera
               </button>
             ) : (
-              <button
-                onClick={stopRecording}
-                className="rounded-lg bg-red-700 px-6 py-3 font-medium text-white hover:bg-red-800"
-              >
-                Stop Recording
-              </button>
+              <>
+                {!isRecording ? (
+                  <button
+                    onClick={startRecording}
+                    disabled={!modelLoaded}
+                    className="rounded-lg bg-red-500 px-6 py-3 font-medium text-white hover:bg-red-600 disabled:opacity-50"
+                  >
+                    {modelLoaded ? 'Start Recording' : 'Waiting for model...'}
+                  </button>
+                ) : (
+                  <button
+                    onClick={stopRecording}
+                    className="rounded-lg bg-red-700 px-6 py-3 font-medium text-white hover:bg-red-800"
+                  >
+                    Stop Recording
+                  </button>
+                )}
+                <button
+                  onClick={() => { stopCamera(); setPhase('select-task'); }}
+                  className="rounded-lg bg-zinc-700 px-6 py-3 font-medium text-white hover:bg-zinc-600"
+                >
+                  Cancel
+                </button>
+              </>
             )}
-            <button
-              onClick={() => { stopCamera(); setPhase('select-task'); }}
-              className="rounded-lg bg-zinc-700 px-6 py-3 font-medium text-white hover:bg-zinc-600"
-            >
-              Cancel
-            </button>
-          </>
-        )}
           </div>
         </div>
 
-        {/* Right: requirements (visible while recording) */}
-        <div className="w-full shrink-0 lg:w-80">
-          <div className="sticky top-8 rounded-xl border border-zinc-200 bg-white/90 p-5 dark:border-zinc-800 dark:bg-zinc-900/90">
+        {/* Right: Live Preview (aligned with video) + Task description */}
+        <div className="w-full shrink-0 space-y-4 lg:w-80">
+          {/* Live Preview — same vertical alignment as video; clip 3D to section */}
+          <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white/90 p-4 dark:border-zinc-800 dark:bg-zinc-900/90">
+            <div className="mb-2 flex items-center justify-between">
+              <h3 className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Live Preview</h3>
+              <div className="flex gap-1 rounded-lg bg-zinc-200 dark:bg-zinc-800 p-0.5">
+                <button
+                  onClick={() => setViewMode('avatar')}
+                  className={`px-2 py-0.5 text-xs font-medium rounded transition ${
+                    viewMode === 'avatar'
+                      ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm'
+                      : 'text-zinc-600 dark:text-zinc-400'
+                  }`}
+                >
+                  Avatar
+                </button>
+                <button
+                  onClick={() => setViewMode('skeleton')}
+                  className={`px-2 py-0.5 text-xs font-medium rounded transition ${
+                    viewMode === 'skeleton'
+                      ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm'
+                      : 'text-zinc-600 dark:text-zinc-400'
+                  }`}
+                >
+                  Skeleton
+                </button>
+              </div>
+            </div>
+            <div className="w-full overflow-hidden rounded-lg">
+              {modelLoaded && currentKeypoints.length > 0 ? (
+                viewMode === 'avatar' ? (
+                  <PoseAvatarViewer keypoints={currentKeypoints} width={288} height={216} />
+                ) : (
+                  <PoseSkeletonViewer keypoints={currentKeypoints} width={288} height={216} />
+                )
+              ) : (
+                <div className="flex h-[216px] w-full items-center justify-center rounded-lg bg-zinc-100 text-sm text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                  Pose appears when camera is on
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Task description — aligned with video column */}
+          <div className="rounded-xl border border-zinc-200 bg-white/90 p-5 dark:border-zinc-800 dark:bg-zinc-900/90">
             <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-              Task requirements
+              Task description
             </h2>
             <p className="mb-3 text-base font-medium text-zinc-900 dark:text-white">
               {selectedTask?.title}
