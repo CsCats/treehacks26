@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { useTheme } from '@/lib/ThemeContext';
@@ -27,9 +27,20 @@ export default function NotebookViewer({ taskTitle, submissionCount, dataPreview
   const { resolved } = useTheme();
   const isDark = resolved === 'dark';
   const [executedCells, setExecutedCells] = useState<Set<number>>(new Set());
+  const [executionOrder, setExecutionOrder] = useState<Map<number, number>>(new Map());
+  const [executionCount, setExecutionCount] = useState(0);
   const [isRunningAll, setIsRunningAll] = useState(false);
+  const [editingCell, setEditingCell] = useState<number | null>(null);
+  const [cellContents, setCellContents] = useState<Map<number, string>>(new Map());
+  const [apiUrl, setApiUrl] = useState('');
 
-  const cells: NotebookCell[] = [
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setApiUrl(`${window.location.origin}/api/submissions?taskId=${taskTitle}`);
+    }
+  }, [taskTitle]);
+
+  const initialCells: NotebookCell[] = useMemo(() => [
     {
       type: 'markdown',
       content: `# 📊 Motion Capture Data Analysis
@@ -58,7 +69,7 @@ print("✓ Libraries loaded")`,
       content: `# Load your pose data from the API
 import requests
 
-url = "https://your-app.vercel.app/api/submissions?taskId=${taskTitle}"
+url = "${apiUrl}"
 response = requests.get(url)
 submissions = response.json()
 
@@ -225,17 +236,30 @@ client = OpenAI()
 result = client.compare_poses(reference, submission)
 \`\`\``,
     },
-  ];
+  ], [taskTitle, submissionCount, dataPreview, apiUrl]);
+
+  const [cells, setCells] = useState(initialCells);
+
+  // Update cells when props or apiUrl changes
+  useEffect(() => {
+    setCells(initialCells);
+  }, [initialCells]);
 
   const runAllCells = async () => {
     setIsRunningAll(true);
     const newExecuted = new Set<number>();
+    const newOrder = new Map<number, number>();
+    let count = 1;
 
     for (let i = 0; i < cells.length; i++) {
       if (cells[i].type === 'code') {
         await new Promise(resolve => setTimeout(resolve, 300));
         newExecuted.add(i);
+        newOrder.set(i, count);
+        count++;
         setExecutedCells(new Set(newExecuted));
+        setExecutionOrder(new Map(newOrder));
+        setExecutionCount(count - 1);
       }
     }
 
@@ -243,8 +267,95 @@ result = client.compare_poses(reference, submission)
   };
 
   const runCell = async (index: number) => {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    setExecutedCells(new Set([...executedCells, index]));
+    if (!executedCells.has(index)) {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      const newExecuted = new Set([...executedCells, index]);
+      const newOrder = new Map(executionOrder);
+      newOrder.set(index, executionCount + 1);
+      setExecutedCells(newExecuted);
+      setExecutionOrder(newOrder);
+      setExecutionCount(executionCount + 1);
+    }
+  };
+
+  const updateCellContent = (index: number, newContent: string) => {
+    const newCells = [...cells];
+    newCells[index] = { ...newCells[index], content: newContent };
+    // Clear execution state when cell is edited
+    if (executedCells.has(index)) {
+      const newExecuted = new Set(executedCells);
+      newExecuted.delete(index);
+      setExecutedCells(newExecuted);
+      const newOrder = new Map(executionOrder);
+      newOrder.delete(index);
+      setExecutionOrder(newOrder);
+    }
+    setCells(newCells);
+  };
+
+  const downloadNotebook = () => {
+    const notebookData = {
+      cells: cells.map(cell => ({
+        cell_type: cell.type === 'code' ? 'code' : 'markdown',
+        execution_count: cell.type === 'code' && cell.cellId ? cell.cellId : null,
+        metadata: {},
+        source: cell.content.split('\n'),
+        outputs: cell.type === 'code' && cell.output ? [{
+          output_type: 'stream',
+          name: 'stdout',
+          text: cell.output.split('\n')
+        }] : []
+      })),
+      metadata: {
+        kernelspec: {
+          display_name: 'Python 3',
+          language: 'python',
+          name: 'python3'
+        },
+        language_info: {
+          name: 'python',
+          version: '3.11.7'
+        }
+      },
+      nbformat: 4,
+      nbformat_minor: 5
+    };
+
+    const blob = new Blob([JSON.stringify(notebookData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'motion_analysis.ipynb';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const openInColab = () => {
+    const notebookData = {
+      cells: cells.map(cell => ({
+        cell_type: cell.type === 'code' ? 'code' : 'markdown',
+        execution_count: null,
+        metadata: {},
+        source: cell.content.split('\n'),
+        outputs: []
+      })),
+      metadata: {
+        kernelspec: {
+          display_name: 'Python 3',
+          language: 'python',
+          name: 'python3'
+        }
+      },
+      nbformat: 4,
+      nbformat_minor: 5
+    };
+
+    const notebookJson = JSON.stringify(notebookData);
+    const encoded = encodeURIComponent(notebookJson);
+    const colabUrl = `https://colab.research.google.com/notebook#create=true&data=${encoded}`;
+    window.open(colabUrl, '_blank');
   };
 
   return (
@@ -252,7 +363,7 @@ result = client.compare_poses(reference, submission)
       {/* Notebook Header */}
       <div className="max-w-5xl mx-auto mb-6">
         <div className={`flex items-center justify-between border-b px-4 py-3 rounded-t-lg ${
-          isDark ? 'bg-[#2d2d2d] border-zinc-700' : 'bg-white border-zinc-300'
+          isDark ? 'bg-[#2d2d2d] border-zinc-700' : 'bg-white border-zinc-300 shadow-sm'
         }`}>
           <div className="flex items-center gap-4">
             <div className="flex gap-2">
@@ -260,99 +371,157 @@ result = client.compare_poses(reference, submission)
               <div className="w-3 h-3 rounded-full bg-yellow-500" />
               <div className="w-3 h-3 rounded-full bg-green-500" />
             </div>
-            <span className={`text-sm font-mono ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+            <span className={`text-sm font-mono font-medium ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
               motion_analysis.ipynb
             </span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <button
               onClick={runAllCells}
               disabled={isRunningAll}
-              className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded text-sm font-medium transition"
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-md text-white text-sm font-semibold transition shadow-sm"
             >
               {isRunningAll ? (
                 <>
-                  <span className="animate-spin">⚙️</span>
+                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
                   Running...
                 </>
               ) : (
                 <>
-                  ▶️ Run All
+                  <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
+                  </svg>
+                  Run All
                 </>
               )}
             </button>
-            <button className={`px-3 py-1.5 rounded text-sm font-medium transition ${
-              isDark ? 'bg-zinc-700 hover:bg-zinc-600' : 'bg-zinc-200 hover:bg-zinc-300 text-zinc-900'
-            }`}>
-              📥 Download .ipynb
+            <button
+              onClick={downloadNotebook}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition shadow-sm ${
+                isDark
+                  ? 'bg-zinc-700 hover:bg-zinc-600 text-white'
+                  : 'bg-zinc-200 hover:bg-zinc-300 text-zinc-900'
+              }`}
+            >
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Download
             </button>
-            <button className={`px-3 py-1.5 rounded text-sm font-medium transition ${
-              isDark ? 'bg-zinc-700 hover:bg-zinc-600' : 'bg-zinc-200 hover:bg-zinc-300 text-zinc-900'
-            }`}>
-              🔗 Open in Colab
+            <button
+              onClick={openInColab}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition shadow-sm ${
+                isDark
+                  ? 'bg-zinc-700 hover:bg-zinc-600 text-white'
+                  : 'bg-zinc-200 hover:bg-zinc-300 text-zinc-900'
+              }`}
+            >
+              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M16.9414 4.9757a7.033 7.033 0 0 0-4.9308 2.0646 7.033 7.033 0 0 0-.1232 9.8068l2.395-2.395a3.6455 3.6455 0 0 1 5.1497-5.1478l2.397-2.3989a7.033 7.033 0 0 0-4.8877-1.9297zM7.07 4.9855a7.033 7.033 0 0 0-4.8878 1.9316l2.3911 2.3911a3.6434 3.6434 0 0 1 5.0227.1271l1.7341-2.9737-.0997-.0802A7.033 7.033 0 0 0 7.07 4.9855zm15.0093 2.1721l-2.3892 2.3911a3.6455 3.6455 0 0 1-5.1497 5.1497l-2.4067 2.4068a7.0362 7.0362 0 0 0 9.9456-9.9476zM1.932 7.1674a7.033 7.033 0 0 0-.002 9.6816c2.3911-2.3911 4.7841-4.7841 7.1751-7.1751a7.033 7.033 0 0 0-7.1731-2.5065z"/>
+              </svg>
+              Colab
             </button>
           </div>
         </div>
 
         {/* Cells */}
-        <div className={`rounded-b-lg ${isDark ? 'bg-[#2d2d2d]' : 'bg-white'}`}>
+        <div className={`rounded-b-lg ${isDark ? 'bg-[#2d2d2d]' : 'bg-white shadow-sm'}`}>
           {cells.map((cell, index) => (
             <div
               key={index}
-              className={`border-b last:border-b-0 ${isDark ? 'border-zinc-700' : 'border-zinc-300'}`}
+              className={`border-b last:border-b-0 ${isDark ? 'border-zinc-700' : 'border-zinc-200'}`}
             >
               {cell.type === 'markdown' && (
                 <div className="px-6 py-4">
-                  <div
-                    className={`prose max-w-none ${isDark ? 'prose-invert' : ''}`}
-                    dangerouslySetInnerHTML={{
-                      __html: cell.content
-                        .replace(/^# (.+)/gm, '<h1 class="text-2xl font-bold mb-2">$1</h1>')
-                        .replace(/^## (.+)/gm, '<h2 class="text-xl font-semibold mb-2 mt-4">$1</h2>')
-                        .replace(/\*\*(.+?)\*\*/g, `<strong class="font-semibold ${isDark ? 'text-blue-400' : 'text-blue-600'}">$1</strong>`)
-                        .replace(/- (.+)/g, '<li class="ml-4">$1</li>')
-                        .replace(/`(.+?)`/g, `<code class="${isDark ? 'bg-zinc-800 text-green-400' : 'bg-zinc-200 text-green-700'} px-1.5 py-0.5 rounded text-sm">$1</code>`)
-                    }}
-                  />
+                  {editingCell === index ? (
+                    <textarea
+                      value={cell.content}
+                      onChange={(e) => updateCellContent(index, e.target.value)}
+                      onBlur={() => setEditingCell(null)}
+                      className={`w-full min-h-[100px] p-2 rounded border font-mono text-sm ${
+                        isDark
+                          ? 'bg-zinc-800 border-zinc-700 text-white'
+                          : 'bg-white border-zinc-300 text-zinc-900'
+                      }`}
+                      autoFocus
+                    />
+                  ) : (
+                    <div
+                      onClick={() => setEditingCell(index)}
+                      className={`prose max-w-none cursor-text ${isDark ? 'prose-invert' : ''}`}
+                      dangerouslySetInnerHTML={{
+                        __html: cell.content
+                          .replace(/^# (.+)/gm, `<h1 class="text-2xl font-bold mb-2 ${isDark ? '' : 'font-extrabold'}">$1</h1>`)
+                          .replace(/^## (.+)/gm, `<h2 class="text-xl font-semibold mb-2 mt-4 ${isDark ? '' : 'font-bold'}">$1</h2>`)
+                          .replace(/\*\*(.+?)\*\*/g, `<strong class="font-semibold ${isDark ? 'text-blue-400' : 'text-blue-600 font-bold'}">$1</strong>`)
+                          .replace(/- (.+)/g, '<li class="ml-4">$1</li>')
+                          .replace(/`(.+?)`/g, `<code class="${isDark ? 'bg-zinc-800 text-green-400' : 'bg-zinc-200 text-green-700 font-semibold'} px-1.5 py-0.5 rounded text-sm">$1</code>`)
+                      }}
+                    />
+                  )}
                 </div>
               )}
 
               {cell.type === 'code' && (
                 <div className="flex">
-                  <div className={`flex-shrink-0 w-16 border-r flex flex-col items-center justify-start pt-3 ${
-                    isDark ? 'bg-[#252526] border-zinc-700' : 'bg-zinc-100 border-zinc-300'
+                  <div className={`flex-shrink-0 w-16 border-r flex flex-col items-center justify-start pt-4 ${
+                    isDark ? 'bg-[#252526] border-zinc-700' : 'bg-zinc-50 border-zinc-200'
                   }`}>
                     <button
                       onClick={() => runCell(index)}
-                      disabled={executedCells.has(index) || isRunningAll}
-                      className={`text-xs transition mb-1 ${
+                      disabled={isRunningAll}
+                      className={`w-8 h-8 rounded-md flex items-center justify-center transition mb-2 ${
                         executedCells.has(index)
-                          ? 'text-green-500'
+                          ? 'bg-green-600 text-white'
                           : isDark
-                          ? 'text-zinc-500 hover:text-white'
-                          : 'text-zinc-600 hover:text-zinc-900'
+                          ? 'bg-zinc-700 hover:bg-zinc-600 text-zinc-300'
+                          : 'bg-zinc-200 hover:bg-zinc-300 text-zinc-700'
                       }`}
+                      title="Run cell"
                     >
-                      {executedCells.has(index) ? '✓' : '▶'}
+                      <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
+                      </svg>
                     </button>
-                    <span className={`text-xs font-mono ${isDark ? 'text-zinc-600' : 'text-zinc-500'}`}>
-                      [{executedCells.has(index) ? index + 1 : ' '}]
+                    <span className={`text-xs font-mono font-medium ${isDark ? 'text-zinc-500' : 'text-zinc-600'}`}>
+                      [{executionOrder.get(index) || ' '}]
                     </span>
                   </div>
                   <div className="flex-1 overflow-x-auto">
-                    <SyntaxHighlighter
-                      language={cell.language || 'python'}
-                      style={isDark ? vscDarkPlus : vs}
-                      customStyle={{
-                        margin: 0,
-                        padding: '12px 16px',
-                        background: isDark ? '#1e1e1e' : '#ffffff',
-                        fontSize: '13px',
-                      }}
-                      showLineNumbers={false}
-                    >
-                      {cell.content}
-                    </SyntaxHighlighter>
+                    {editingCell === index ? (
+                      <textarea
+                        value={cell.content}
+                        onChange={(e) => updateCellContent(index, e.target.value)}
+                        onBlur={() => setEditingCell(null)}
+                        className={`w-full min-h-[150px] p-4 font-mono text-sm ${
+                          isDark
+                            ? 'bg-[#1e1e1e] text-white'
+                            : 'bg-white text-zinc-900'
+                        }`}
+                        style={{ fontSize: '13px' }}
+                        autoFocus
+                      />
+                    ) : (
+                      <div onClick={() => setEditingCell(index)} className="cursor-text">
+                        <SyntaxHighlighter
+                          language={cell.language || 'python'}
+                          style={isDark ? vscDarkPlus : vs}
+                          customStyle={{
+                            margin: 0,
+                            padding: '12px 16px',
+                            background: isDark ? '#1e1e1e' : '#ffffff',
+                            fontSize: '13px',
+                            fontWeight: isDark ? 400 : 500,
+                          }}
+                          showLineNumbers={false}
+                        >
+                          {cell.content}
+                        </SyntaxHighlighter>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -360,12 +529,12 @@ result = client.compare_poses(reference, submission)
               {/* Output - only show if code cell was executed */}
               {cell.type === 'code' && cell.cellId && executedCells.has(index) && cell.output && (
                 <div className={`border-t ${
-                  isDark ? 'bg-[#1e1e1e] border-zinc-800' : 'bg-zinc-50 border-zinc-300'
+                  isDark ? 'bg-[#1e1e1e] border-zinc-800' : 'bg-zinc-50 border-zinc-200'
                 }`}>
                   <div className="flex">
                     <div className="w-16 flex-shrink-0" />
                     <pre className={`flex-1 px-4 py-3 text-sm font-mono whitespace-pre-wrap ${
-                      isDark ? 'text-zinc-300' : 'text-zinc-700'
+                      isDark ? 'text-zinc-300 font-normal' : 'text-zinc-800 font-medium'
                     }`}>
                       {cell.output}
                     </pre>
@@ -377,19 +546,26 @@ result = client.compare_poses(reference, submission)
         </div>
 
         {/* Footer */}
-        <div className={`mt-4 flex items-center justify-between text-xs ${
-          isDark ? 'text-zinc-500' : 'text-zinc-600'
-        }`}>
-          <div className="flex items-center gap-4">
-            <span>Kernel: Python 3.11.7</span>
-            <span>•</span>
-            <span className="flex items-center gap-1">
-              <span className="h-2 w-2 rounded-full bg-green-500" />
-              Connected
-            </span>
+        <div className={`mt-4 space-y-2`}>
+          <div className={`flex items-center justify-between text-xs font-medium ${
+            isDark ? 'text-zinc-500' : 'text-zinc-600'
+          }`}>
+            <div className="flex items-center gap-4">
+              <span>Kernel: Python 3.11.7 (Demo)</span>
+              <span>•</span>
+              <span className="flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                Connected
+              </span>
+            </div>
+            <div>
+              Last saved: Just now
+            </div>
           </div>
-          <div>
-            Last saved: Just now
+          <div className={`text-xs italic ${
+            isDark ? 'text-zinc-600' : 'text-zinc-500'
+          }`}>
+            Note: This is a demo notebook with pre-generated outputs. Download or open in Colab to run actual Python code.
           </div>
         </div>
       </div>

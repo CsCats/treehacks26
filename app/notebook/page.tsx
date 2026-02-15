@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 
@@ -13,7 +13,7 @@ const NotebookViewer = dynamic(() => import('@/components/NotebookViewer'), {
   ),
 });
 
-export default function NotebookPage() {
+function NotebookContent() {
   const searchParams = useSearchParams();
   const taskTitle = searchParams.get('task') || 'Sample Task';
   const [submissionCount, setSubmissionCount] = useState(0);
@@ -77,5 +77,17 @@ export default function NotebookPage() {
       submissionCount={submissionCount}
       dataPreview={dataPreview}
     />
+  );
+}
+
+export default function NotebookPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#1e1e1e] flex items-center justify-center">
+        <div className="text-white text-lg">Loading notebook...</div>
+      </div>
+    }>
+      <NotebookContent />
+    </Suspense>
   );
 }
