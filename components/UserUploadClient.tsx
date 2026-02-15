@@ -9,6 +9,11 @@ const PoseSkeletonViewer = dynamic(() => import('@/components/PoseSkeletonViewer
   loading: () => <div className="w-[500px] h-[400px] bg-zinc-200 dark:bg-zinc-900 rounded-lg animate-pulse" />,
 });
 
+const PoseAvatarViewer = dynamic(() => import('@/components/PoseAvatarViewer'), {
+  ssr: false,
+  loading: () => <div className="w-[500px] h-[400px] bg-zinc-200 dark:bg-zinc-900 rounded-lg animate-pulse" />,
+});
+
 interface Task {
   id: string;
   title: string;
@@ -73,6 +78,7 @@ export default function UserUploadClient() {
   const [posePreviewFrameIndex, setPosePreviewFrameIndex] = useState(0);
   const [posePlaying, setPosePlaying] = useState(false);
   const [faceBlurEnabled, setFaceBlurEnabled] = useState(true);
+  const [viewMode, setViewMode] = useState<'skeleton' | 'avatar'>('avatar');
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const reviewVideoRef = useRef<HTMLVideoElement>(null);
@@ -641,16 +647,54 @@ export default function UserUploadClient() {
           </div>
 
           <div>
-            <h3 className="mb-2 text-sm font-medium text-zinc-600 dark:text-zinc-400">3D Pose</h3>
-            <PoseSkeletonViewer
-              keypoints={
-                recordedFrames.length > 0
-                  ? (recordedFrames[posePreviewFrameIndex] ?? recordedFrames[0]).keypoints
-                  : []
-              }
-              width={500}
-              height={400}
-            />
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-sm font-medium text-zinc-600 dark:text-zinc-400">3D Motion Capture</h3>
+              <div className="flex gap-1 rounded-lg bg-zinc-200 dark:bg-zinc-800 p-1">
+                <button
+                  onClick={() => setViewMode('avatar')}
+                  className={`px-3 py-1 text-xs font-medium rounded transition ${
+                    viewMode === 'avatar'
+                      ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm'
+                      : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
+                  }`}
+                >
+                  🧍 Avatar
+                </button>
+                <button
+                  onClick={() => setViewMode('skeleton')}
+                  className={`px-3 py-1 text-xs font-medium rounded transition ${
+                    viewMode === 'skeleton'
+                      ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm'
+                      : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
+                  }`}
+                >
+                  🦴 Skeleton
+                </button>
+              </div>
+            </div>
+
+            {viewMode === 'avatar' ? (
+              <PoseAvatarViewer
+                keypoints={
+                  recordedFrames.length > 0
+                    ? (recordedFrames[posePreviewFrameIndex] ?? recordedFrames[0]).keypoints
+                    : []
+                }
+                width={500}
+                height={400}
+                autoRotate={posePlaying}
+              />
+            ) : (
+              <PoseSkeletonViewer
+                keypoints={
+                  recordedFrames.length > 0
+                    ? (recordedFrames[posePreviewFrameIndex] ?? recordedFrames[0]).keypoints
+                    : []
+                }
+                width={500}
+                height={400}
+              />
+            )}
             {recordedFrames.length > 0 && (
               <div className="mt-3 flex flex-col gap-2">
                 <div className="flex items-center gap-3">
@@ -791,8 +835,36 @@ export default function UserUploadClient() {
 
           {modelLoaded && currentKeypoints.length > 0 && (
             <div className="mb-4">
-              <h3 className="mb-2 text-sm font-medium text-zinc-600 dark:text-zinc-400">Live 3D Skeleton</h3>
-              <PoseSkeletonViewer keypoints={currentKeypoints} width={400} height={300} />
+              <div className="mb-2 flex items-center justify-between max-w-[400px]">
+                <h3 className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Live Preview</h3>
+                <div className="flex gap-1 rounded-lg bg-zinc-200 dark:bg-zinc-800 p-0.5">
+                  <button
+                    onClick={() => setViewMode('avatar')}
+                    className={`px-2 py-0.5 text-xs font-medium rounded transition ${
+                      viewMode === 'avatar'
+                        ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm'
+                        : 'text-zinc-600 dark:text-zinc-400'
+                    }`}
+                  >
+                    Avatar
+                  </button>
+                  <button
+                    onClick={() => setViewMode('skeleton')}
+                    className={`px-2 py-0.5 text-xs font-medium rounded transition ${
+                      viewMode === 'skeleton'
+                        ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm'
+                        : 'text-zinc-600 dark:text-zinc-400'
+                    }`}
+                  >
+                    Skeleton
+                  </button>
+                </div>
+              </div>
+              {viewMode === 'avatar' ? (
+                <PoseAvatarViewer keypoints={currentKeypoints} width={400} height={300} />
+              ) : (
+                <PoseSkeletonViewer keypoints={currentKeypoints} width={400} height={300} />
+              )}
             </div>
           )}
 
