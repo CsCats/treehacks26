@@ -1,0 +1,16 @@
+{
+  "buildCommand": "next build --webpack",
+  "framework": "nextjs",
+  "installCommand": "npm install",
+  "build": {
+    "env": {
+      "NEXT_TELEMETRY_DISABLED": "1"
+    }
+  },
+  "functions": {
+    "app/api/**/*.ts": {
+      "maxDuration": 30
+    }
+  },
+  "regions": ["sfo1"]
+}

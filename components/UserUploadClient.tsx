@@ -78,6 +78,7 @@ export default function UserUploadClient() {
   const [posePreviewFrameIndex, setPosePreviewFrameIndex] = useState(0);
   const [posePlaying, setPosePlaying] = useState(false);
   const [faceBlurEnabled, setFaceBlurEnabled] = useState(true);
+  const [followedBusinessIds, setFollowedBusinessIds] = useState<Set<string>>(new Set());
   const [viewMode, setViewMode] = useState<'skeleton' | 'avatar'>('avatar');
 
   // Gemini task verification
@@ -127,6 +128,19 @@ export default function UserUploadClient() {
       })
       .catch(err => console.error('Failed to fetch tasks:', err));
   }, []);
+
+  // Fetch which businesses the current user follows
+  useEffect(() => {
+    if (!user?.uid) return;
+    fetch(`/api/follows?userId=${encodeURIComponent(user.uid)}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.follows && Array.isArray(data.follows)) {
+          setFollowedBusinessIds(new Set(data.follows.map((f: { businessId: string }) => f.businessId)));
+        }
+      })
+      .catch(err => console.error('Failed to fetch follows:', err));
+  }, [user?.uid]);
 
   // Cleanup
   useEffect(() => {
@@ -651,20 +665,59 @@ export default function UserUploadClient() {
               const isExpired = !isClosed && task.deadline ? new Date(task.deadline) < new Date() : false;
               const isDisabled = isClosed || isExpired;
 
+              const isFollowing = task.businessId ? followedBusinessIds.has(task.businessId) : false;
+              const toggleFollow = async (e: React.MouseEvent) => {
+                e.stopPropagation();
+                if (!user?.uid || !task.businessId) return;
+                if (isFollowing) {
+                  await fetch('/api/follows', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: user.uid, businessId: task.businessId }),
+                  });
+                  setFollowedBusinessIds(prev => {
+                    const next = new Set(prev);
+                    next.delete(task.businessId!);
+                    return next;
+                  });
+                } else {
+                  await fetch('/api/follows', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      userId: user.uid,
+                      businessId: task.businessId,
+                      businessName: task.businessName || '',
+                    }),
+                  });
+                  setFollowedBusinessIds(prev => new Set(prev).add(task.businessId!));
+                }
+              };
+
               return (
-                <button
+                <div
                   key={task.id}
+                  role="button"
+                  tabIndex={0}
                   onClick={() => {
                     if (isDisabled) return;
                     setSelectedTask(task);
                     setPhase('camera');
                     setTimeout(() => startCamera(), 100);
                   }}
-                  disabled={isDisabled}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      if (isDisabled) return;
+                      setSelectedTask(task);
+                      setPhase('camera');
+                      setTimeout(() => startCamera(), 100);
+                    }
+                  }}
                   className={`rounded-xl border p-6 text-left transition ${
                     isDisabled
                       ? 'border-zinc-300 bg-zinc-100 opacity-60 cursor-not-allowed dark:border-zinc-800/50 dark:bg-zinc-900/50'
-                      : 'border-zinc-200 bg-white hover:border-zinc-300 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-600 dark:hover:bg-zinc-800'
+                      : 'border-zinc-200 bg-white hover:border-zinc-300 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-600 dark:hover:bg-zinc-800 cursor-pointer'
                   }`}
                 >
                   <div className="flex items-center gap-2 flex-wrap">
@@ -673,6 +726,19 @@ export default function UserUploadClient() {
                       <span className="rounded-full bg-purple-600/20 px-2.5 py-0.5 text-xs font-medium text-purple-400">
                         {task.businessName}
                       </span>
+                    )}
+                    {user && task.businessId && (
+                      <button
+                        type="button"
+                        onClick={toggleFollow}
+                        className={`ml-auto rounded-full px-2.5 py-0.5 text-xs font-medium transition ${
+                          isFollowing
+                            ? 'bg-blue-600/20 text-blue-400 hover:bg-blue-600/30'
+                            : 'bg-zinc-200 text-zinc-600 hover:bg-zinc-300 dark:bg-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-600'
+                        }`}
+                      >
+                        {isFollowing ? 'Following' : 'Follow'}
+                      </button>
                     )}
                     {task.pricePerApproval > 0 && (
                       <span className="rounded-full bg-green-500/10 px-2.5 py-0.5 text-xs font-medium text-green-400">
@@ -708,7 +774,7 @@ export default function UserUploadClient() {
                       {isClosed ? 'This task is no longer accepting submissions.' : 'This task has passed its deadline.'}
                     </p>
                   )}
-                </button>
+                </div>
               );
             })}
           </div>
