@@ -177,11 +177,11 @@ export default function Gallery() {
   // --- EXPANDED VIDEO VIEW ---
   if (selected) {
     return (
-      <div className="min-h-screen p-8 text-white">
+      <div className="min-h-screen p-8 text-zinc-900 dark:text-white">
         <div className="mx-auto max-w-4xl">
           <button
             onClick={() => { handleStopPose(); setSelectedId(null); }}
-            className="mb-6 text-sm text-zinc-500 hover:text-zinc-300"
+            className="mb-6 text-sm text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition"
           >
             ← Back to Gallery
           </button>
@@ -189,7 +189,7 @@ export default function Gallery() {
           <div className="mb-6 flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold">{selected.user}&apos;s Submission</h1>
-              <p className="mt-1 text-sm text-zinc-400">
+              <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
                 Folding Laundry · {selected.date} · {selected.duration}
               </p>
             </div>
@@ -215,8 +215,8 @@ export default function Gallery() {
             />
 
             {/* Placeholder overlay when no video source */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-zinc-900/80">
-              <svg className="mb-3 h-16 w-16 text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-zinc-100/90 dark:bg-zinc-900/80">
+              <svg className="mb-3 h-16 w-16 text-zinc-400 dark:text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
               </svg>
               <p className="text-zinc-500 text-sm">Video placeholder — add src to play</p>
@@ -224,7 +224,7 @@ export default function Gallery() {
           </div>
 
           {/* TensorFlow Pose Controls */}
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
+          <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-medium">TensorFlow Pose Detection</h3>
@@ -260,8 +260,8 @@ export default function Gallery() {
               </div>
             </div>
             {detecting && (
-              <div className="mt-3 flex items-center gap-2 text-sm text-green-300">
-                <span className="h-2 w-2 animate-pulse rounded-full bg-green-400" />
+              <div className="mt-3 flex items-center gap-2 text-sm text-green-600 dark:text-green-300">
+                <span className="h-2 w-2 animate-pulse rounded-full bg-green-500 dark:bg-green-400" />
                 Detecting poses in real-time — skeleton overlay on video
               </div>
             )}
@@ -273,16 +273,16 @@ export default function Gallery() {
 
   // --- GALLERY GRID VIEW ---
   return (
-    <div className="min-h-screen p-8 text-white">
+    <div className="min-h-screen p-8 text-zinc-900 dark:text-white">
       <div className="mx-auto max-w-6xl">
-        <a href="/businessView" className="mb-6 inline-block text-sm text-zinc-500 hover:text-zinc-300">
+        <a href="/businessView" className="mb-6 inline-block text-sm text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition">
           ← Back
         </a>
 
         <div className="mb-8">
           <h1 className="text-3xl font-bold tracking-tight">Submissions gallery</h1>
-          <p className="mt-2 text-zinc-400">
-            Task: <span className="font-medium text-white">Folding Laundry</span>
+          <p className="mt-2 text-zinc-500 dark:text-zinc-400">
+            Task: <span className="font-medium text-zinc-900 dark:text-white">Folding Laundry</span>
           </p>
           <p className="text-sm text-zinc-500">{submissions.length} submissions received</p>
         </div>
@@ -295,8 +295,8 @@ export default function Gallery() {
               onClick={() => setFilter(tab)}
               className={`rounded-full px-4 py-1.5 text-sm font-medium capitalize transition ${
                 filter === tab
-                  ? 'bg-white text-black'
-                  : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                  ? 'bg-zinc-900 text-white dark:bg-white dark:text-black'
+                  : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700'
               }`}
             >
               {tab}
@@ -310,17 +310,17 @@ export default function Gallery() {
             <button
               key={sub.id}
               onClick={() => setSelectedId(sub.id)}
-              className="group overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900 text-left transition hover:border-zinc-600"
+              className="group overflow-hidden rounded-xl border border-zinc-200 bg-white text-left shadow-sm transition hover:border-zinc-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-600 dark:shadow-none"
             >
               {/* Video Thumbnail Placeholder */}
-              <div className="relative aspect-video bg-zinc-800 flex flex-col items-center justify-center">
-                <svg className="h-12 w-12 text-zinc-600 group-hover:text-zinc-400 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <div className="relative aspect-video bg-zinc-100 dark:bg-zinc-800 flex flex-col items-center justify-center">
+                <svg className="h-12 w-12 text-zinc-400 group-hover:text-zinc-500 dark:text-zinc-600 dark:group-hover:text-zinc-400 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 010 1.972l-11.54 6.347a1.125 1.125 0 01-1.667-.986V5.653z" />
                 </svg>
-                <span className="mt-1 text-xs text-zinc-600">{sub.duration}</span>
+                <span className="mt-1 text-xs text-zinc-500 dark:text-zinc-600">{sub.duration}</span>
 
                 {/* TF badge */}
-                <div className="absolute bottom-2 right-2 rounded bg-zinc-900/80 px-2 py-0.5 text-[10px] text-zinc-400">
+                <div className="absolute bottom-2 right-2 rounded bg-white/80 px-2 py-0.5 text-[10px] text-zinc-500 dark:bg-zinc-900/80 dark:text-zinc-400">
                   TF Pose Ready
                 </div>
               </div>
@@ -328,7 +328,7 @@ export default function Gallery() {
               {/* Info */}
               <div className="p-4">
                 <div className="flex items-center justify-between">
-                  <p className="font-medium text-white">{sub.user}</p>
+                  <p className="font-medium text-zinc-900 dark:text-white">{sub.user}</p>
                   <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${statusStyles[sub.status]}`}>
                     {sub.status}
                   </span>
@@ -340,7 +340,7 @@ export default function Gallery() {
         </div>
 
         {filtered.length === 0 && (
-          <div className="mt-12 text-center text-zinc-500">No submissions match this filter.</div>
+          <div className="mt-12 rounded-xl border border-zinc-200 bg-white p-12 text-center text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900">No submissions match this filter.</div>
         )}
       </div>
     </div>

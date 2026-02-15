@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const OLLAMA_URL = process.env.OLLAMA_URL || 'http://localhost:11434';
-const OLLAMA_MODEL = process.env.OLLAMA_REVIEW_MODEL || 'llama3.1';
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
 
 const SYSTEM_PROMPT = `You are reviewing task descriptions for a crowdsourced motion-capture platform. Contributors will read these to know what to record. Rate how clear, specific, and actionable the task is from 1 to 5:
 - 1: Vague or missing; a contributor would not know what to do.
@@ -25,6 +24,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { title = '', description = '', requirements = '' } = body;
     const text = [title, description, requirements].filter(Boolean).join('\n\n');
+
     if (!text.trim()) {
       return NextResponse.json(
         { error: 'Provide at least title or description to review' },
@@ -32,35 +32,41 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const res = await fetch(`${OLLAMA_URL}/api/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: OLLAMA_MODEL,
-        messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
-          {
-            role: 'user',
-            content: `Review this task:\n\n${text}`,
-          },
-        ],
-        stream: false,
-      }),
-    });
-
-    if (!res.ok) {
-      const t = await res.text();
+    if (!OPENAI_API_KEY) {
       return NextResponse.json(
-        {
-          error: 'Ollama failed. Is it running? Run: ollama pull llama3.1',
-          detail: t,
-        },
-        { status: 502 }
+        { error: 'OPENAI_API_KEY not configured' },
+        { status: 500 }
       );
     }
 
-    const data = (await res.json()) as { message?: { content?: string } };
-    const raw = data.message?.content?.trim() || '';
+    // Use GPT-4o-mini for fast, cheap reviews
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: SYSTEM_PROMPT },
+          { role: 'user', content: `Review this task:\n\n${text}` },
+        ],
+        temperature: 0.3,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('OpenAI API error:', errorText);
+      return NextResponse.json(
+        { error: 'OpenAI API request failed', detail: errorText },
+        { status: response.status }
+      );
+    }
+
+    const data = await response.json();
+    const raw = data.choices?.[0]?.message?.content?.trim() || '';
 
     let score = 3;
     let feedback = 'Could not parse feedback.';
@@ -80,7 +86,7 @@ export async function POST(request: NextRequest) {
     const message = err instanceof Error ? err.message : 'Unknown error';
     return NextResponse.json(
       {
-        error: 'Failed to review. Is Ollama running? Run: ollama pull llama3.1',
+        error: 'Failed to review task description',
         detail: message,
       },
       { status: 500 }
