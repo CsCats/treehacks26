@@ -154,13 +154,8 @@ export default function UserUploadClient() {
     };
   }, [stream]);
 
-  // Auto-verify with Gemini when entering review phase
-  useEffect(() => {
-    if (phase === 'review' && recordedBlob && selectedTask && !verification && !verifying) {
-      verifyTask();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase]);
+  // Verification is now manually triggered via the "Continue" button in the review UI.
+  // This gives users control over when the AI call fires (helps with rate limits).
 
   // Frame player: advance one frame while playing, stop at end
   useEffect(() => {
@@ -932,86 +927,124 @@ export default function UserUploadClient() {
         {/* Gemini AI Task Verification */}
         <div className="mt-8 w-full max-w-3xl">
           <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-            <div className="flex items-center justify-between mb-4">
-              <div>
+            {/* Pre-verification: explain what happens & gate behind Continue */}
+            {!verification && !verifying && !verificationError && (
+              <div className="text-center space-y-4">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/30">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 0 1-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 0 1 4.5 0m0 0v5.714a2.25 2.25 0 0 0 .659 1.591L19 14.5m-4.75-11.396c.251.023.501.05.75.082M12 6v6m0 0-2.25 2.25M12 12l2.25 2.25" />
+                  </svg>
+                </div>
                 <h3 className="text-lg font-semibold text-zinc-900 dark:text-white">
-                  AI Task Verification
+                  AI Motion Analysis
                 </h3>
-                <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                  Gemini VLM watches your full video to verify it matches the task
+                <p className="text-sm leading-relaxed text-zinc-500 dark:text-zinc-400 max-w-md mx-auto">
+                  Our AI vision model will perform a real-time analysis of your recorded movements,
+                  cross-referencing key frames against the task requirements to verify alignment — delivering
+                  an accelerated, intelligent quality check in seconds.
                 </p>
-              </div>
-              {!verifying && (
                 <button
                   onClick={verifyTask}
-                  className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+                  className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-colors"
                 >
-                  {verification ? 'Re-verify' : 'Verify'}
+                  Continue
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
                 </button>
-              )}
-            </div>
+              </div>
+            )}
 
+            {/* Loading state */}
             {verifying && (
-              <div className="flex items-center gap-3 rounded-lg bg-indigo-50 px-4 py-3 dark:bg-indigo-900/20">
-                <span className="h-2 w-2 animate-pulse rounded-full bg-indigo-500" />
-                <span className="text-sm text-indigo-700 dark:text-indigo-300">
-                  Gemini VLM is analyzing your recording...
+              <div className="flex flex-col items-center gap-3 py-4">
+                <div className="relative h-10 w-10">
+                  <span className="absolute inset-0 rounded-full border-2 border-indigo-200 dark:border-indigo-800" />
+                  <span className="absolute inset-0 rounded-full border-2 border-t-indigo-600 dark:border-t-indigo-400 animate-spin" />
+                </div>
+                <span className="text-sm font-medium text-indigo-700 dark:text-indigo-300">
+                  Analyzing your movements with AI&hellip;
                 </span>
               </div>
             )}
 
+            {/* Error state */}
             {verificationError && (
-              <div className="rounded-lg bg-red-50 px-4 py-3 dark:bg-red-900/20">
-                <p className="text-sm text-red-700 dark:text-red-400">{verificationError}</p>
+              <div className="space-y-3">
+                <div className="rounded-lg bg-red-50 px-4 py-3 dark:bg-red-900/20">
+                  <p className="text-sm text-red-700 dark:text-red-400">{verificationError}</p>
+                </div>
+                <div className="text-center">
+                  <button
+                    onClick={verifyTask}
+                    className="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition-colors"
+                  >
+                    Retry Verification
+                  </button>
+                </div>
               </div>
             )}
 
+            {/* Results */}
             {verification && (
-              <div
-                className={`rounded-lg px-4 py-4 ${
-                  verification.verdict === 'pass'
-                    ? 'bg-green-50 dark:bg-green-900/20'
-                    : verification.verdict === 'fail'
-                    ? 'bg-red-50 dark:bg-red-900/20'
-                    : 'bg-yellow-50 dark:bg-yellow-900/20'
-                }`}
-              >
-                <div className="flex items-center gap-3 mb-2">
-                  <span
-                    className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold ${
-                      verification.verdict === 'pass'
-                        ? 'bg-green-200 text-green-800 dark:bg-green-800 dark:text-green-200'
-                        : verification.verdict === 'fail'
-                        ? 'bg-red-200 text-red-800 dark:bg-red-800 dark:text-red-200'
-                        : 'bg-yellow-200 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-200'
-                    }`}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-zinc-900 dark:text-white">
+                    Verification Result
+                  </h3>
+                  <button
+                    onClick={verifyTask}
+                    className="rounded-lg border border-zinc-300 px-3 py-1.5 text-xs font-medium text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 transition-colors"
                   >
-                    {verification.verdict === 'pass'
-                      ? '✓ Pass'
-                      : verification.verdict === 'fail'
-                      ? '✗ Fail'
-                      : '? Uncertain'}
-                  </span>
-                  <span className="text-sm text-zinc-600 dark:text-zinc-400">
-                    Confidence: {verification.confidence}%
-                  </span>
+                    Re-verify
+                  </button>
                 </div>
-                <p
-                  className={`text-sm font-medium ${
+                <div
+                  className={`rounded-lg px-4 py-4 ${
                     verification.verdict === 'pass'
-                      ? 'text-green-800 dark:text-green-300'
+                      ? 'bg-green-50 dark:bg-green-900/20'
                       : verification.verdict === 'fail'
-                      ? 'text-red-800 dark:text-red-300'
-                      : 'text-yellow-800 dark:text-yellow-300'
+                      ? 'bg-red-50 dark:bg-red-900/20'
+                      : 'bg-yellow-50 dark:bg-yellow-900/20'
                   }`}
                 >
-                  {verification.reason}
-                </p>
-                {verification.details && (
-                  <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-                    {verification.details}
+                  <div className="flex items-center gap-3 mb-2">
+                    <span
+                      className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold ${
+                        verification.verdict === 'pass'
+                          ? 'bg-green-200 text-green-800 dark:bg-green-800 dark:text-green-200'
+                          : verification.verdict === 'fail'
+                          ? 'bg-red-200 text-red-800 dark:bg-red-800 dark:text-red-200'
+                          : 'bg-yellow-200 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-200'
+                      }`}
+                    >
+                      {verification.verdict === 'pass'
+                        ? '✓ Pass'
+                        : verification.verdict === 'fail'
+                        ? '✗ Fail'
+                        : '? Uncertain'}
+                    </span>
+                    <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                      Confidence: {verification.confidence}%
+                    </span>
+                  </div>
+                  <p
+                    className={`text-sm font-medium ${
+                      verification.verdict === 'pass'
+                        ? 'text-green-800 dark:text-green-300'
+                        : verification.verdict === 'fail'
+                        ? 'text-red-800 dark:text-red-300'
+                        : 'text-yellow-800 dark:text-yellow-300'
+                    }`}
+                  >
+                    {verification.reason}
                   </p>
-                )}
+                  {verification.details && (
+                    <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+                      {verification.details}
+                    </p>
+                  )}
+                </div>
               </div>
             )}
           </div>
