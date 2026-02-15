@@ -5,6 +5,7 @@ import {
   addDoc,
   getDocs,
   getDoc,
+  getDocFromServer,
   query,
   where,
   serverTimestamp,
@@ -104,13 +105,17 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Determine initial status: auto-approve if AI verification passed
+    const aiPassed = aiVerification?.verdict === 'pass';
+    const initialStatus = aiPassed ? 'approved' : 'pending';
+
     // Save submission metadata to Firestore
     const submissionDoc = await addDoc(collection(db, 'submissions'), {
       taskId,
       businessId: businessId || '',
       contributorId: contributorId || '',
       contributorName: contributorName || '',
-      status: 'pending',
+      status: initialStatus,
       videoUrl,
       poseUrl,
       poseData,
@@ -125,6 +130,70 @@ export async function POST(request: NextRequest) {
       submissionCount: increment(1),
     });
 
+    // If AI auto-approved, handle the payout
+    if (aiPassed) {
+      console.log('[Auto-approve] AI passed. businessId:', businessId, 'contributorId:', contributorId);
+
+      if (businessId && contributorId) {
+        // Use getDocFromServer to bypass any stale Firestore cache
+        const taskSnap = await getDocFromServer(taskRef);
+        const price = taskSnap.exists() ? (taskSnap.data().pricePerApproval || 0) : 0;
+        console.log('[Auto-approve] Task price:', price);
+
+        if (price > 0) {
+          // Check business has enough balance (bypass cache)
+          const businessUserDoc = await getDocFromServer(doc(db, 'users', businessId));
+          const businessBalance = businessUserDoc.exists() ? (businessUserDoc.data().balance || 0) : 0;
+          console.log('[Auto-approve] Business balance:', businessBalance, 'needed:', price);
+
+          if (businessBalance >= price) {
+            // Deduct from business
+            await updateDoc(doc(db, 'users', businessId), {
+              balance: increment(-price),
+            });
+
+            // Credit contributor
+            await updateDoc(doc(db, 'users', contributorId), {
+              balance: increment(price),
+            });
+
+            // Record transactions
+            await addDoc(collection(db, 'transactions'), {
+              userId: businessId,
+              type: 'payout',
+              amount: -price,
+              description: `Auto-approved submission by ${contributorName || 'contributor'}`,
+              submissionId: submissionDoc.id,
+              taskId,
+              createdAt: serverTimestamp(),
+            });
+
+            await addDoc(collection(db, 'transactions'), {
+              userId: contributorId,
+              type: 'earning',
+              amount: price,
+              description: `Auto-approved submission for task`,
+              submissionId: submissionDoc.id,
+              taskId,
+              createdAt: serverTimestamp(),
+            });
+
+            console.log('[Auto-approve] ✓ Payout successful: $' + price + ' to contributor ' + contributorId);
+          } else {
+            // Not enough balance — revert to pending so business can review & fund
+            console.log('[Auto-approve] ✗ Insufficient business balance. Reverting to pending.');
+            await updateDoc(doc(db, 'submissions', submissionDoc.id), {
+              status: 'pending',
+            });
+          }
+        } else {
+          console.log('[Auto-approve] Task has no price set (pricePerApproval = 0). No payout needed.');
+        }
+      } else {
+        console.log('[Auto-approve] Missing businessId or contributorId — skipping payout.');
+      }
+    }
+
     // Fire webhook if configured (fire-and-forget)
     const taskSnap = await getDoc(taskRef);
     if (taskSnap.exists()) {
@@ -134,7 +203,7 @@ export async function POST(request: NextRequest) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            event: 'submission.created',
+            event: aiPassed ? 'submission.auto_approved' : 'submission.created',
             submissionId: submissionDoc.id,
             taskId,
             taskTitle: taskData.title || '',
@@ -188,17 +257,25 @@ export async function PATCH(request: NextRequest) {
       }
       const submissionData = submissionSnap.data();
 
-      // Get the task to find the price
-      const taskSnap = await getDoc(doc(db, 'tasks', submissionData.taskId));
+      // Skip payout if already approved (prevents double-pay on auto-approved submissions)
+      if (submissionData.status === 'approved') {
+        console.log('[Manual approve] Submission already approved, skipping payout.');
+        return NextResponse.json({ id: submissionId, status: 'approved', message: 'Already approved' });
+      }
+
+      // Get the task to find the price (bypass cache)
+      const taskSnap = await getDocFromServer(doc(db, 'tasks', submissionData.taskId));
       const price = taskSnap.exists() ? (taskSnap.data().pricePerApproval || 0) : 0;
+      console.log('[Manual approve] Task price:', price);
 
       if (price > 0) {
         const businessId = submissionData.businessId;
         const contributorId = submissionData.contributorId;
 
-        // Check business has enough balance
-        const businessDoc = await getDoc(doc(db, 'users', businessId));
+        // Check business has enough balance (bypass cache)
+        const businessDoc = await getDocFromServer(doc(db, 'users', businessId));
         const businessBalance = businessDoc.exists() ? (businessDoc.data().balance || 0) : 0;
+        console.log('[Manual approve] Business balance:', businessBalance, 'needed:', price);
 
         if (businessBalance < price) {
           return NextResponse.json(

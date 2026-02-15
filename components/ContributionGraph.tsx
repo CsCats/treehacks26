@@ -12,22 +12,22 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 const DAYS = ['', 'Mon', '', 'Wed', '', 'Fri', ''];
 
 function getColor(count: number): string {
-  if (count === 0) return 'bg-zinc-800/60';
-  if (count === 1) return 'bg-green-900';
-  if (count === 2) return 'bg-green-700';
-  if (count <= 4) return 'bg-green-500';
-  return 'bg-green-400';
+  if (count === 0) return 'bg-zinc-200/80 dark:bg-zinc-800/60';
+  if (count === 1) return 'bg-green-200 dark:bg-green-900';
+  if (count === 2) return 'bg-green-400 dark:bg-green-700';
+  if (count <= 4) return 'bg-green-500 dark:bg-green-500';
+  return 'bg-green-600 dark:bg-green-400';
 }
 
 function getBorderColor(count: number): string {
-  if (count === 0) return 'border-zinc-700/40';
-  if (count === 1) return 'border-green-800';
-  if (count === 2) return 'border-green-600';
-  if (count <= 4) return 'border-green-400';
-  return 'border-green-300';
+  if (count === 0) return 'border-zinc-300/60 dark:border-zinc-700/40';
+  if (count === 1) return 'border-green-300 dark:border-green-800';
+  if (count === 2) return 'border-green-500 dark:border-green-600';
+  if (count <= 4) return 'border-green-600 dark:border-green-400';
+  return 'border-green-700 dark:border-green-300';
 }
 
-export default function ContributionGraph() {
+  export default function ContributionGraph() {
   const { user } = useAuth();
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
@@ -146,30 +146,30 @@ export default function ContributionGraph() {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
-        <div className="h-40 animate-pulse rounded-lg bg-zinc-800" />
+      <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="h-40 animate-pulse rounded-lg bg-zinc-100 dark:bg-zinc-800" />
       </div>
     );
   }
 
   return (
-    <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6 relative">
-      <h2 className="mb-3 text-lg font-bold font-mono">Contribution History</h2>
+    <div className="rounded-2xl border border-zinc-200 bg-white p-6 relative transition-colors dark:border-zinc-800 dark:bg-zinc-900">
+      <h2 className="mb-3 text-lg font-bold font-mono text-zinc-900 dark:text-white">Contribution History</h2>
 
       {/* Streak badges */}
       <div className="mb-4 flex gap-3">
         <div className="flex items-center gap-1.5">
-          <span className="text-xs text-zinc-500 font-medium">Current</span>
-          <div className="flex items-center gap-1.5 rounded-full bg-orange-500/10 px-3 py-1">
+          <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">Current</span>
+          <div className="flex items-center gap-1.5 rounded-full bg-orange-100 px-3 py-1 dark:bg-orange-500/10">
             <span className="text-sm">🔥</span>
-            <span className="text-xs font-semibold text-orange-400">{currentStreak} day{currentStreak !== 1 ? 's' : ''}</span>
+            <span className="text-xs font-semibold text-orange-600 dark:text-orange-400">{currentStreak} day{currentStreak !== 1 ? 's' : ''}</span>
           </div>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="text-xs text-zinc-500 font-medium">All-Time</span>
-          <div className="flex items-center gap-1.5 rounded-full bg-orange-500/10 px-3 py-1">
+          <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">All-Time</span>
+          <div className="flex items-center gap-1.5 rounded-full bg-orange-100 px-3 py-1 dark:bg-orange-500/10">
             <span className="text-sm">🔥</span>
-            <span className="text-xs font-semibold text-orange-400">{longestStreak} day{longestStreak !== 1 ? 's' : ''}</span>
+            <span className="text-xs font-semibold text-orange-600 dark:text-orange-400">{longestStreak} day{longestStreak !== 1 ? 's' : ''}</span>
           </div>
         </div>
       </div>
@@ -182,7 +182,7 @@ export default function ContributionGraph() {
             {monthLabels.map((label, i) => (
               <span
                 key={`${label.month}-${i}`}
-                className="absolute text-xs text-zinc-500"
+                className="absolute text-xs text-zinc-500 dark:text-zinc-500"
                 style={{ left: `${(label.weekIndex / weeks.length) * 100}%` }}
               >
                 {label.month}
@@ -195,7 +195,7 @@ export default function ContributionGraph() {
             {/* Day labels */}
             <div className="shrink-0 flex flex-col gap-[3px]">
               {DAYS.map((d, i) => (
-                <div key={i} className="h-[10px] text-[10px] leading-[10px] text-zinc-500 w-6 text-right pr-1">
+                <div key={i} className="h-[10px] text-[10px] leading-[10px] text-zinc-400 dark:text-zinc-500 w-6 text-right pr-1">
                   {d}
                 </div>
               ))}
@@ -212,7 +212,7 @@ export default function ContributionGraph() {
                         day.count === -1
                           ? 'bg-transparent border-transparent'
                           : `${getColor(day.count)} ${getBorderColor(day.count)}`
-                      } transition-all duration-100 ${day.count >= 0 ? 'hover:scale-150 hover:z-10 cursor-pointer' : ''}`}
+                      } transition-all duration-150 ${day.count >= 0 ? 'hover:scale-[1.6] hover:z-10 hover:ring-2 hover:ring-green-400/40 dark:hover:ring-green-400/30 hover:brightness-110 cursor-pointer' : ''}`}
                       onMouseEnter={(e) => {
                         if (day.count >= 0) {
                           const rect = e.currentTarget.getBoundingClientRect();
@@ -236,34 +236,34 @@ export default function ContributionGraph() {
 
       {/* Footer */}
       <div className="mt-3 flex items-center justify-between">
-        <span className="text-xs text-zinc-500">
+        <span className="text-xs text-zinc-500 dark:text-zinc-500">
           {totalCount} contribution{totalCount !== 1 ? 's' : ''} in the past year
         </span>
         <div className="flex items-center gap-1.5">
-          <span className="text-xs text-zinc-500">Less</span>
-          <div className={`h-[10px] w-[10px] rounded-[2px] bg-zinc-800/60 border border-zinc-700/40`} />
-          <div className={`h-[10px] w-[10px] rounded-[2px] bg-green-900 border border-green-800`} />
-          <div className={`h-[10px] w-[10px] rounded-[2px] bg-green-700 border border-green-600`} />
-          <div className={`h-[10px] w-[10px] rounded-[2px] bg-green-500 border border-green-400`} />
-          <div className={`h-[10px] w-[10px] rounded-[2px] bg-green-400 border border-green-300`} />
-          <span className="text-xs text-zinc-500">More</span>
+          <span className="text-xs text-zinc-500 dark:text-zinc-500">Less</span>
+          <div className="h-[10px] w-[10px] rounded-[2px] bg-zinc-200/80 dark:bg-zinc-800/60 border border-zinc-300/60 dark:border-zinc-700/40" />
+          <div className="h-[10px] w-[10px] rounded-[2px] bg-green-200 dark:bg-green-900 border border-green-300 dark:border-green-800" />
+          <div className="h-[10px] w-[10px] rounded-[2px] bg-green-400 dark:bg-green-700 border border-green-500 dark:border-green-600" />
+          <div className="h-[10px] w-[10px] rounded-[2px] bg-green-500 dark:bg-green-500 border border-green-600 dark:border-green-400" />
+          <div className="h-[10px] w-[10px] rounded-[2px] bg-green-600 dark:bg-green-400 border border-green-700 dark:border-green-300" />
+          <span className="text-xs text-zinc-500 dark:text-zinc-500">More</span>
         </div>
       </div>
 
       {/* Tooltip */}
       {hoveredDay && (
         <div
-          className="fixed z-50 rounded-lg bg-zinc-800 border border-zinc-700 px-3 py-2 text-xs shadow-xl pointer-events-none"
+          className="fixed z-50 rounded-lg bg-white border border-zinc-200 px-3 py-2 text-xs shadow-xl pointer-events-none dark:bg-zinc-800 dark:border-zinc-700"
           style={{
             left: hoveredDay.x,
             top: hoveredDay.y - 40,
             transform: 'translateX(-50%)',
           }}
         >
-          <span className="font-semibold text-white">
+          <span className="font-semibold text-zinc-900 dark:text-white">
             {hoveredDay.count} contribution{hoveredDay.count !== 1 ? 's' : ''}
           </span>
-          <span className="text-zinc-400"> on {hoveredDay.date}</span>
+          <span className="text-zinc-500 dark:text-zinc-400"> on {hoveredDay.date}</span>
         </div>
       )}
     </div>
