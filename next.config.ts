@@ -1,9 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Disable Turbopack for production (use webpack)
-  turbopack: false,
-
   // Optimize output for serverless
   output: 'standalone',
 
