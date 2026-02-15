@@ -3,11 +3,14 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY || '');
 
-// Models to try in order — each has its own separate quota
+// Models to try in order — all support vision/multimodal and each has its own rate-limit bucket.
+// Spread across model families so quota exhaustion on one doesn't block the others.
 const MODELS = [
-  'gemini-2.0-flash',
-  'gemini-2.0-flash-lite',
-  'gemini-2.5-flash-lite',
+  'gemini-2.5-flash',        // newest flash — fast, cheap, multimodal
+  'gemini-2.0-flash',        // proven fast multimodal, separate quota bucket
+  'gemini-2.5-pro',          // flagship high-quality multimodal
+  'gemini-1.5-flash',        // older flash, separate quota bucket
+  'gemini-1.5-pro',          // older pro, separate quota bucket
 ];
 
 function sleep(ms: number) {
@@ -60,8 +63,8 @@ Respond in this exact JSON format (no markdown, no code fences):
   "details": "<2-3 sentences describing what you see in the frames>"
 }`;
 
-    // Build inline image parts (cap at 15 frames)
-    const imageParts = frames.slice(0, 15).map((dataUrl: string) => {
+    // Build inline image parts — cap at 3 frames to stay well within token limits
+    const imageParts = frames.slice(0, 3).map((dataUrl: string) => {
       const base64 = dataUrl.replace(/^data:image\/\w+;base64,/, '');
       return {
         inlineData: {
@@ -71,10 +74,20 @@ Respond in this exact JSON format (no markdown, no code fences):
       };
     });
 
-    // Try each model, with retry on rate limit
+    // Try each model in order. On rate-limit (429) skip to the next model.
+    // On other errors retry once, then move on.
     let lastError: unknown = null;
+    let rateLimitedCount = 0;
 
-    for (const modelName of MODELS) {
+    for (let mi = 0; mi < MODELS.length; mi++) {
+      const modelName = MODELS[mi];
+
+      // Small delay between model switches to avoid burst-triggering shared project limits
+      if (mi > 0) {
+        console.log(`Switching to ${modelName}, waiting 2s...`);
+        await sleep(2000);
+      }
+
       for (let attempt = 0; attempt < 2; attempt++) {
         try {
           if (attempt > 0) {
@@ -82,7 +95,7 @@ Respond in this exact JSON format (no markdown, no code fences):
             await sleep(5000);
           }
 
-          console.log(`Trying model: ${modelName} (attempt ${attempt + 1}), ${frames.length} frames`);
+          console.log(`Trying model: ${modelName} (attempt ${attempt + 1}), ${imageParts.length} frames`);
           const model = genAI.getGenerativeModel({ model: modelName });
           const result = await model.generateContent([prompt, ...imageParts]);
           const text = result.response.text();
@@ -109,24 +122,40 @@ Respond in this exact JSON format (no markdown, no code fences):
         } catch (err: unknown) {
           lastError = err;
           const msg = err instanceof Error ? err.message : String(err);
-          if (msg.includes('429') || msg.includes('Too Many Requests') || msg.includes('quota')) {
-            console.log(`⚠ ${modelName} rate limited, trying next...`);
+
+          const isRateLimit =
+            msg.includes('429') ||
+            msg.includes('Too Many Requests') ||
+            msg.includes('quota') ||
+            msg.includes('RESOURCE_EXHAUSTED');
+
+          if (isRateLimit) {
+            console.log(`⚠ ${modelName} rate-limited (429), skipping to next model...`);
+            rateLimitedCount++;
             break; // skip to next model
           }
-          // Other error — retry once, then move on
-          if (attempt === 0) continue;
-          console.error(`✗ ${modelName} failed:`, msg);
+
+          // Non-rate-limit error — retry once, then move on
+          if (attempt === 0) {
+            console.log(`⚠ ${modelName} error (will retry): ${msg}`);
+            continue;
+          }
+          console.error(`✗ ${modelName} failed after 2 attempts: ${msg}`);
           break;
         }
       }
     }
 
     // All models exhausted
-    const message = lastError instanceof Error ? lastError.message : 'All models rate limited';
-    console.error('All Gemini models exhausted:', message);
+    const message = lastError instanceof Error ? lastError.message : 'All models exhausted';
+    console.error(`All ${MODELS.length} Gemini models exhausted (${rateLimitedCount} rate-limited):`, message);
     return NextResponse.json(
-      { error: 'Rate limited on all models. Please wait a minute and try again.' },
-      { status: 429 }
+      {
+        error: rateLimitedCount > 0
+          ? 'All models rate-limited. Please wait a minute and try again.'
+          : `Verification failed across all models: ${message}`,
+      },
+      { status: rateLimitedCount > 0 ? 429 : 500 }
     );
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Unknown error';
