@@ -100,17 +100,17 @@ export default function BillingPage() {
         </div>
 
         {/* Add Funds */}
-        <div className="mb-8 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
-          <h2 className="mb-4 text-lg font-semibold text-zinc-200">Add funds</h2>
+        <div className="mb-8 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/60">
+          <h2 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-zinc-200">Add funds</h2>
           <div className="mb-4 flex flex-wrap gap-2">
             {presetAmounts.map(amt => (
               <button
                 key={amt}
                 onClick={() => setAddAmount(String(amt))}
-                className={`rounded-xl border px-4 py-2.5 text-sm font-medium transition ${
+                className={`rounded-xl border px-4 py-2.5 text-sm font-medium transition-all duration-200 hover:scale-105 active:scale-95 ${
                   addAmount === String(amt)
-                    ? 'border-blue-500 bg-blue-500/15 text-blue-400'
-                    : 'border-zinc-700 bg-zinc-800/80 text-zinc-300 hover:border-zinc-600'
+                    ? 'border-blue-500 bg-blue-500/15 text-blue-600 dark:text-blue-400 shadow-sm'
+                    : 'border-zinc-300 bg-zinc-100 text-zinc-700 hover:border-zinc-400 dark:border-zinc-700 dark:bg-zinc-800/80 dark:text-zinc-300 dark:hover:border-zinc-600'
                 }`}
               >
                 ${amt}
@@ -127,13 +127,13 @@ export default function BillingPage() {
                 value={addAmount}
                 onChange={e => setAddAmount(e.target.value)}
                 placeholder="0.00"
-                className="w-full rounded-xl border border-zinc-700 bg-zinc-800/80 py-2.5 pl-8 pr-4 text-white placeholder-zinc-500 transition focus:border-blue-500"
+                className="w-full rounded-xl border border-zinc-300 bg-zinc-50 py-2.5 pl-8 pr-4 text-zinc-900 placeholder-zinc-400 transition focus:border-blue-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800/80 dark:text-white dark:placeholder-zinc-500"
               />
             </div>
             <button
               type="submit"
               disabled={adding || !addAmount || parseFloat(addAmount) <= 0}
-              className="rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition hover:from-blue-400 hover:to-blue-500 disabled:opacity-50"
+              className="rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all duration-200 hover:from-blue-400 hover:to-blue-500 hover:shadow-xl hover:shadow-blue-500/30 active:scale-95 disabled:opacity-50 disabled:hover:shadow-lg"
             >
               {adding ? 'Adding…' : 'Add funds'}
             </button>
@@ -142,9 +142,9 @@ export default function BillingPage() {
 
         {/* Transaction History */}
         <div>
-          <h2 className="mb-4 text-lg font-semibold text-zinc-200">Transaction history</h2>
+          <h2 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-zinc-200">Transaction history</h2>
           {transactions.length === 0 ? (
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-8 text-center text-zinc-500">
+            <div className="rounded-2xl border border-zinc-200 bg-white p-8 text-center text-zinc-500 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/60">
               No transactions yet
             </div>
           ) : (
@@ -152,20 +152,20 @@ export default function BillingPage() {
               {transactions.map(tx => (
                 <div
                   key={tx.id}
-                  className="flex items-center justify-between rounded-xl border border-zinc-800 bg-zinc-900/60 px-5 py-4 transition hover:border-zinc-700"
+                  className="flex items-center justify-between rounded-xl border border-zinc-200 bg-white px-5 py-4 shadow-sm transition-all duration-200 hover:border-zinc-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900/60 dark:hover:border-zinc-700 dark:shadow-none"
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`flex h-8 w-8 items-center justify-center rounded-full text-sm ${
+                    <div className={`flex h-8 w-8 items-center justify-center rounded-full text-sm transition-transform duration-200 hover:scale-110 ${
                       tx.amount > 0
-                        ? 'bg-green-500/10 text-green-400'
-                        : 'bg-red-500/10 text-red-400'
+                        ? 'bg-green-500/10 text-green-600 dark:text-green-400'
+                        : 'bg-red-500/10 text-red-600 dark:text-red-400'
                     }`}>
                       {tx.amount > 0 ? '+' : '−'}
                     </div>
                     <div>
                       <div className="text-sm font-medium">{tx.description}</div>
                       {tx.createdAt?.seconds && (
-                        <div className="text-xs text-zinc-600">
+                        <div className="text-xs text-zinc-500 dark:text-zinc-600">
                           {new Date(tx.createdAt.seconds * 1000).toLocaleDateString('en-US', {
                             month: 'short', day: 'numeric', year: 'numeric',
                             hour: 'numeric', minute: '2-digit',
@@ -175,7 +175,7 @@ export default function BillingPage() {
                     </div>
                   </div>
                   <div className={`text-sm font-semibold ${
-                    tx.amount > 0 ? 'text-green-400' : 'text-red-400'
+                    tx.amount > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                   }`}>
                     {tx.amount > 0 ? '+' : '−'}${Math.abs(tx.amount).toFixed(2)}
                   </div>

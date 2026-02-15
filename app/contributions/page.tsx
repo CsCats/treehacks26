@@ -78,20 +78,20 @@ export default function ContributionsPage() {
     pending: {
       label: 'Pending Approval',
       bg: 'bg-yellow-500/10',
-      text: 'text-yellow-400',
-      dot: 'bg-yellow-400',
+      text: 'text-yellow-600 dark:text-yellow-400',
+      dot: 'bg-yellow-500 dark:bg-yellow-400',
     },
     approved: {
       label: 'Approved',
       bg: 'bg-green-500/10',
-      text: 'text-green-400',
-      dot: 'bg-green-400',
+      text: 'text-green-600 dark:text-green-400',
+      dot: 'bg-green-500 dark:bg-green-400',
     },
     rejected: {
       label: 'Rejected',
       bg: 'bg-red-500/10',
-      text: 'text-red-400',
-      dot: 'bg-red-400',
+      text: 'text-red-600 dark:text-red-400',
+      dot: 'bg-red-500 dark:bg-red-400',
     },
   };
 
@@ -122,7 +122,7 @@ export default function ContributionsPage() {
             </p>
             <Link
               href="/userUpload"
-              className="mt-6 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition hover:from-blue-400 hover:to-blue-500"
+              className="mt-6 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all duration-200 hover:from-blue-400 hover:to-blue-500 hover:shadow-xl hover:shadow-blue-500/30 active:scale-95"
             >
               Start contributing
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -140,7 +140,7 @@ export default function ContributionsPage() {
               return (
                 <div
                   key={sub.id}
-                  className="flex items-center justify-between rounded-xl border border-zinc-200 bg-white p-5 transition hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900/60 dark:hover:border-zinc-700"
+                  className="flex items-center justify-between rounded-xl border border-zinc-200 bg-white p-5 shadow-sm transition-all duration-200 hover:border-zinc-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900/60 dark:hover:border-zinc-700 dark:shadow-none"
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3">
@@ -154,7 +154,7 @@ export default function ContributionsPage() {
                       )}
                     </div>
                     {sub.createdAt?.seconds && (
-                      <p className="mt-1 text-xs text-zinc-600">
+                      <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-600">
                         Submitted {new Date(sub.createdAt.seconds * 1000).toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
@@ -171,7 +171,7 @@ export default function ContributionsPage() {
                           <line x1="12" y1="8" x2="12" y2="12" />
                           <line x1="12" y1="16" x2="12.01" y2="16" />
                         </svg>
-                        <p className="text-xs text-red-300">{sub.feedback}</p>
+                        <p className="text-xs text-red-600 dark:text-red-300">{sub.feedback}</p>
                       </div>
                     )}
                   </div>
@@ -200,7 +200,7 @@ export default function ContributionsPage() {
                       href={sub.videoUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="rounded bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-300 hover:bg-zinc-700"
+                      className="rounded-lg bg-zinc-100 px-3 py-1.5 text-xs font-medium text-zinc-700 transition-all duration-200 hover:bg-zinc-200 active:scale-95 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
                     >
                       View Video
                     </a>
