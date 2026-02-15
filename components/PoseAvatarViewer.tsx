@@ -309,8 +309,9 @@ export default function PoseAvatarViewer({
   }
 
   return (
-    <div style={{ width, height }} className="rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700 bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-black">
+    <div style={{ width, height, maxWidth: '100%' }} className="rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700 bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-black">
       <Canvas
+        style={{ display: 'block' }}
         shadows
         gl={{ powerPreference: 'high-performance', antialias: true }}
         onCreated={({ gl }) => {
