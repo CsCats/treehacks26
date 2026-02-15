@@ -133,7 +133,7 @@ export default function BillingPage() {
             <button
               type="submit"
               disabled={adding || !addAmount || parseFloat(addAmount) <= 0}
-              className="rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all duration-200 hover:from-blue-400 hover:to-blue-500 hover:shadow-xl hover:shadow-blue-500/30 active:scale-95 disabled:opacity-50 disabled:hover:shadow-lg"
+              className="btn-primary w-full disabled:opacity-50 disabled:pointer-events-none"
             >
               {adding ? 'Adding…' : 'Add funds'}
             </button>

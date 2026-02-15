@@ -325,7 +325,7 @@ export default function BusinessDashboard() {
         <div className="mx-auto max-w-6xl">
           <button
             onClick={() => { setView('tasks'); setSelectedTask(null); setSubmissions([]); }}
-            className="mb-6 text-sm text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition"
+            className="btn-secondary mb-6"
           >
             ← Back to Tasks
           </button>
@@ -343,7 +343,7 @@ export default function BusinessDashboard() {
             <button
               onClick={downloadAllData}
               disabled={submissions.length === 0}
-              className="rounded-lg bg-blue-600 px-6 py-2 text-sm font-medium text-white shadow-lg shadow-blue-600/20 hover:bg-blue-700 disabled:opacity-50 transition"
+              className="btn-primary disabled:opacity-50 disabled:pointer-events-none"
             >
               Download All Data ({submissions.length})
             </button>
@@ -443,7 +443,7 @@ export default function BusinessDashboard() {
                             /* AI approved — only show Override & Reject */
                             <button
                               onClick={e => { e.stopPropagation(); setRejectingId(sub.id); setRejectFeedback(''); }}
-                              className="rounded bg-orange-600/20 px-3 py-1 text-xs font-medium text-orange-400 hover:bg-orange-600/30"
+                              className="btn-danger"
                             >
                               Override &amp; Reject
                             </button>
@@ -452,13 +452,13 @@ export default function BusinessDashboard() {
                             <>
                               <button
                                 onClick={e => { e.stopPropagation(); updateSubmissionStatus(sub.id, 'approved'); }}
-                                className="rounded bg-green-600/20 px-3 py-1 text-xs font-medium text-green-400 hover:bg-green-600/30"
+                                className="btn-success"
                               >
                                 Approve
                               </button>
                               <button
                                 onClick={e => { e.stopPropagation(); setRejectingId(sub.id); setRejectFeedback(''); }}
-                                className="rounded bg-red-600/20 px-3 py-1 text-xs font-medium text-red-400 hover:bg-red-600/30"
+                                className="btn-danger"
                               >
                                 Reject
                               </button>
@@ -476,7 +476,7 @@ export default function BusinessDashboard() {
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={e => e.stopPropagation()}
-                        className="rounded bg-zinc-200 px-3 py-1 text-xs text-zinc-700 hover:bg-zinc-300 dark:bg-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-600 transition"
+                        className="btn-secondary"
                       >
                         Download Video
                       </a>
@@ -485,7 +485,7 @@ export default function BusinessDashboard() {
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={e => e.stopPropagation()}
-                        className="rounded bg-zinc-200 px-3 py-1 text-xs text-zinc-700 hover:bg-zinc-300 dark:bg-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-600 transition"
+                        className="btn-secondary"
                       >
                         Download JSON
                       </a>
@@ -512,13 +512,13 @@ export default function BusinessDashboard() {
                       />
                       <button
                         onClick={() => updateSubmissionStatus(sub.id, 'rejected', rejectFeedback)}
-                        className="rounded-lg bg-red-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-red-700"
+                        className="btn-danger"
                       >
                         Reject
                       </button>
                       <button
                         onClick={() => { setRejectingId(null); setRejectFeedback(''); }}
-                        className="rounded-lg px-3 py-1.5 text-xs text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition"
+                        className="btn-secondary"
                       >
                         Cancel
                       </button>
@@ -637,7 +637,7 @@ export default function BusinessDashboard() {
           </div>
           <button
             onClick={() => setShowCreateForm(!showCreateForm)}
-            className="rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-2.5 font-medium text-white shadow-lg shadow-blue-500/20 transition hover:from-blue-400 hover:to-blue-500"
+            className={showCreateForm ? 'btn-secondary' : 'btn-primary'}
           >
             {showCreateForm ? 'Cancel' : '+ New Task'}
           </button>
@@ -724,7 +724,7 @@ export default function BusinessDashboard() {
                       }
                     }}
                     disabled={reviewingDescription}
-                    className="rounded-lg border border-zinc-300 bg-zinc-100 px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-200 disabled:opacity-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700 transition"
+                    className="btn-secondary disabled:opacity-50 disabled:pointer-events-none"
                   >
                     {reviewingDescription ? 'Reviewing…' : 'Review with AI'}
                   </button>
@@ -817,7 +817,7 @@ export default function BusinessDashboard() {
               <button
                 type="submit"
                 disabled={creating}
-                className="rounded-lg bg-green-600 px-6 py-2 font-medium text-white hover:bg-green-700 disabled:opacity-50"
+                className="btn-primary disabled:opacity-50 disabled:pointer-events-none"
               >
                 {creating ? 'Creating...' : 'Create Task'}
               </button>
@@ -842,7 +842,7 @@ export default function BusinessDashboard() {
                   <div className="space-y-3">
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Edit Task</h3>
-                      <button onClick={cancelEdit} className="text-xs text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition">Cancel</button>
+                      <button onClick={cancelEdit} className="btn-secondary">Cancel</button>
                     </div>
                     <div>
                       <label className="mb-1 block text-xs font-medium text-zinc-500 dark:text-zinc-500">Title</label>
@@ -907,13 +907,13 @@ export default function BusinessDashboard() {
                       <button
                         onClick={saveEditTask}
                         disabled={saving || !editTitle.trim() || !editDescription.trim()}
-                        className="rounded-lg bg-blue-600 px-5 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                        className="btn-primary disabled:opacity-50 disabled:pointer-events-none"
                       >
                         {saving ? 'Saving...' : 'Save Changes'}
                       </button>
                       <button
                         onClick={cancelEdit}
-                        className="rounded-lg border border-zinc-300 px-5 py-2 text-sm font-medium text-zinc-600 hover:border-zinc-400 hover:text-zinc-900 dark:border-zinc-700 dark:text-zinc-400 dark:hover:border-zinc-600 dark:hover:text-white transition"
+                        className="btn-secondary"
                       >
                         Cancel
                       </button>
@@ -974,23 +974,19 @@ export default function BusinessDashboard() {
                       </span>
                       <button
                         onClick={() => startEditTask(task)}
-                        className="rounded-lg bg-zinc-100 px-4 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-600 dark:hover:text-white transition"
+                        className="btn-secondary"
                       >
                         Edit Task
                       </button>
                       <button
                         onClick={() => toggleTaskStatus(task.id, task.status || 'open')}
-                        className={`rounded-lg px-4 py-1.5 text-xs font-medium ${
-                          task.status === 'closed'
-                            ? 'bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30'
-                            : 'bg-red-600/20 text-red-400 hover:bg-red-600/30'
-                        }`}
+                        className="btn-secondary"
                       >
                         {task.status === 'closed' ? 'Reopen' : 'Close Task'}
                       </button>
                       <button
                         onClick={() => viewSubmissions(task)}
-                        className="rounded-lg bg-zinc-900 px-4 py-1.5 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-700 dark:hover:bg-zinc-600 transition"
+                        className="btn-primary"
                       >
                         View Submissions
                       </button>

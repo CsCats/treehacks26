@@ -12,7 +12,11 @@ const ConstellationBackground = dynamic(
   { ssr: false }
 );
 
-// --- Animation variants ---
+// --- Duolingo-style bouncy animation config ---
+const springBouncy = { type: 'spring' as const, stiffness: 400, damping: 25 };
+const springSoft = { type: 'spring' as const, stiffness: 300, damping: 24 };
+const springStagger = (i: number) => ({ type: 'spring' as const, stiffness: 350, damping: 28, delay: i * 0.06 });
+
 const ease = [0.22, 1, 0.36, 1] as const;
 
 const fadeUp = {
@@ -20,16 +24,16 @@ const fadeUp = {
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { delay: i * 0.12, duration: 0.6, ease },
+    transition: { delay: i * 0.08, ...springSoft },
   }),
 };
 
 const scaleIn = {
-  hidden: { opacity: 0, scale: 0.9 },
+  hidden: { opacity: 0, scale: 0.85 },
   visible: (i: number) => ({
     opacity: 1,
     scale: 1,
-    transition: { delay: 0.3 + i * 0.1, duration: 0.5, ease },
+    transition: { delay: 0.2 + i * 0.06, ...springBouncy },
   }),
 };
 
@@ -43,6 +47,11 @@ const glowPulse = {
     transition: { duration: 3, repeat: Infinity, ease: 'easeInOut' as const },
   },
 };
+
+// Card hover/tap: Duolingo-style squash and bounce
+const cardHover = { scale: 1.02, transition: springBouncy };
+const cardTap = { scale: 0.98, transition: { duration: 0.1 } };
+const iconBounce = { scale: [1, 1.2, 1], transition: { duration: 0.35, ease: 'easeOut' as const } };
 
 // --- Stat counter with typing effect ---
 function AnimatedStat({ value, label, delay }: { value: string; label: string; delay: number }) {
@@ -109,17 +118,25 @@ export default function Home() {
           <div className="grid gap-6 md:grid-cols-2">
             {profile.role === 'contributor' && (
               <>
-                <motion.div custom={0} variants={scaleIn} initial="hidden" animate="visible">
+                <motion.div
+                  custom={0}
+                  variants={scaleIn}
+                  initial="hidden"
+                  animate="visible"
+                  whileHover={cardHover}
+                  whileTap={cardTap}
+                  className="rounded-2xl"
+                >
                   <Link
                     href="/userUpload"
                     className="group flex flex-col rounded-2xl border border-zinc-200 bg-white p-8 transition hover:border-blue-500/50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-900/80"
                   >
-                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600/20">
+                    <motion.div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600/20" whileHover={iconBounce}>
                       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <polygon points="23 7 16 12 23 17 23 7" />
                         <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
                       </svg>
-                    </div>
+                    </motion.div>
                     <h2 className="mb-2 text-xl font-semibold text-zinc-900 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400">
                       Start Contributing
                     </h2>
@@ -132,12 +149,20 @@ export default function Home() {
                   </Link>
                 </motion.div>
 
-                <motion.div custom={1} variants={scaleIn} initial="hidden" animate="visible">
+                <motion.div
+                  custom={1}
+                  variants={scaleIn}
+                  initial="hidden"
+                  animate="visible"
+                  whileHover={cardHover}
+                  whileTap={cardTap}
+                  className="rounded-2xl"
+                >
                   <Link
                     href="/contributions"
                     className="group flex flex-col rounded-2xl border border-zinc-200 bg-white p-8 transition hover:border-emerald-500/50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-900/80"
                   >
-                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-600/20">
+                    <motion.div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-600/20" whileHover={iconBounce}>
                       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                         <polyline points="14 2 14 8 20 8" />
@@ -145,7 +170,7 @@ export default function Home() {
                         <line x1="16" y1="17" x2="8" y2="17" />
                         <polyline points="10 9 9 9 8 9" />
                       </svg>
-                    </div>
+                    </motion.div>
                     <h2 className="mb-2 text-xl font-semibold text-zinc-900 group-hover:text-emerald-600 dark:text-white dark:group-hover:text-emerald-400">
                       View Past Contributions
                     </h2>
@@ -161,17 +186,25 @@ export default function Home() {
             )}
 
             {profile.role === 'contributor' && (
-                <motion.div custom={2} variants={scaleIn} initial="hidden" animate="visible">
+                <motion.div
+                  custom={2}
+                  variants={scaleIn}
+                  initial="hidden"
+                  animate="visible"
+                  whileHover={cardHover}
+                  whileTap={cardTap}
+                  className="rounded-2xl"
+                >
                 <Link
                   href="/earnings"
                   className="group flex flex-col rounded-2xl border border-zinc-200 bg-white p-8 transition hover:border-yellow-500/50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-900/80"
                 >
-                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-yellow-600/20">
+                  <motion.div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-yellow-600/20" whileHover={iconBounce}>
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#eab308" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <line x1="12" y1="1" x2="12" y2="23" />
                       <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
                     </svg>
-                  </div>
+                  </motion.div>
                   <h2 className="mb-2 text-xl font-semibold text-zinc-900 group-hover:text-yellow-600 dark:text-white dark:group-hover:text-yellow-400">
                     Earnings
                   </h2>
@@ -199,19 +232,27 @@ export default function Home() {
 
             {profile.role === 'business' && (
               <>
-                <motion.div custom={0} variants={scaleIn} initial="hidden" animate="visible">
+                <motion.div
+                  custom={0}
+                  variants={scaleIn}
+                  initial="hidden"
+                  animate="visible"
+                  whileHover={cardHover}
+                  whileTap={cardTap}
+                  className="rounded-2xl"
+                >
                   <Link
                     href="/business"
                     className="group flex flex-col rounded-2xl border border-zinc-200 bg-white p-8 transition hover:border-purple-500/50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-900/80"
                   >
-                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-purple-600/20">
+                    <motion.div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-purple-600/20" whileHover={iconBounce}>
                       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a855f7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <rect x="3" y="3" width="7" height="7" />
                         <rect x="14" y="3" width="7" height="7" />
                         <rect x="14" y="14" width="7" height="7" />
                         <rect x="3" y="14" width="7" height="7" />
                       </svg>
-                    </div>
+                    </motion.div>
                     <h2 className="mb-2 text-xl font-semibold text-zinc-900 group-hover:text-purple-600 dark:text-white dark:group-hover:text-purple-400">
                       Open Dashboard
                     </h2>
@@ -224,17 +265,25 @@ export default function Home() {
                   </Link>
                 </motion.div>
 
-                <motion.div custom={1} variants={scaleIn} initial="hidden" animate="visible">
+                <motion.div
+                  custom={1}
+                  variants={scaleIn}
+                  initial="hidden"
+                  animate="visible"
+                  whileHover={cardHover}
+                  whileTap={cardTap}
+                  className="rounded-2xl"
+                >
                   <Link
                     href="/billing"
                     className="group flex flex-col rounded-2xl border border-zinc-200 bg-white p-8 transition hover:border-yellow-500/50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-900/80"
                   >
-                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-yellow-600/20">
+                    <motion.div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-yellow-600/20" whileHover={iconBounce}>
                       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#eab308" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
                         <line x1="1" y1="10" x2="23" y2="10" />
                       </svg>
-                    </div>
+                    </motion.div>
                     <h2 className="mb-2 text-xl font-semibold text-zinc-900 group-hover:text-yellow-600 dark:text-white dark:group-hover:text-yellow-400">
                       Billing
                     </h2>
@@ -247,18 +296,26 @@ export default function Home() {
                   </Link>
                 </motion.div>
 
-                <motion.div custom={2} variants={scaleIn} initial="hidden" animate="visible">
+                <motion.div
+                  custom={2}
+                  variants={scaleIn}
+                  initial="hidden"
+                  animate="visible"
+                  whileHover={cardHover}
+                  whileTap={cardTap}
+                  className="rounded-2xl"
+                >
                   <Link
                     href="/stats"
                     className="group flex flex-col rounded-2xl border border-zinc-200 bg-white p-8 transition hover:border-emerald-500/50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-900/80"
                   >
-                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-600/20">
+                    <motion.div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-600/20" whileHover={iconBounce}>
                       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <line x1="18" y1="20" x2="18" y2="10" />
                         <line x1="12" y1="20" x2="12" y2="4" />
                         <line x1="6" y1="20" x2="6" y2="14" />
                       </svg>
-                    </div>
+                    </motion.div>
                     <h2 className="mb-2 text-xl font-semibold text-zinc-900 group-hover:text-emerald-600 dark:text-white dark:group-hover:text-emerald-400">
                       Stats
                     </h2>
@@ -271,17 +328,25 @@ export default function Home() {
                   </Link>
                 </motion.div>
 
-                <motion.div custom={3} variants={scaleIn} initial="hidden" animate="visible">
+                <motion.div
+                  custom={3}
+                  variants={scaleIn}
+                  initial="hidden"
+                  animate="visible"
+                  whileHover={cardHover}
+                  whileTap={cardTap}
+                  className="rounded-2xl"
+                >
                   <Link
                     href="/developer"
                     className="group flex flex-col rounded-2xl border border-zinc-200 bg-white p-8 transition hover:border-cyan-500/50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-900/80"
                   >
-                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-cyan-600/20">
+                    <motion.div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-cyan-600/20" whileHover={iconBounce}>
                       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#06b6d4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="16 18 22 12 16 6" />
                         <polyline points="8 6 2 12 8 18" />
                       </svg>
-                    </div>
+                    </motion.div>
                     <h2 className="mb-2 text-xl font-semibold text-zinc-900 group-hover:text-cyan-600 dark:text-white dark:group-hover:text-cyan-400">
                       Developer Integration
                     </h2>
@@ -294,17 +359,25 @@ export default function Home() {
                   </Link>
                 </motion.div>
 
-                <motion.div custom={4} variants={scaleIn} initial="hidden" animate="visible">
+                <motion.div
+                  custom={4}
+                  variants={scaleIn}
+                  initial="hidden"
+                  animate="visible"
+                  whileHover={cardHover}
+                  whileTap={cardTap}
+                  className="rounded-2xl"
+                >
                   <Link
                     href="/analytics"
                     className="group flex flex-col rounded-2xl border border-zinc-200 bg-white p-8 transition hover:border-orange-500/50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-900/80"
                   >
-                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-orange-600/20">
+                    <motion.div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-orange-600/20" whileHover={iconBounce}>
                       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ea580c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M3 3v18h18" />
                         <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3" />
                       </svg>
-                    </div>
+                    </motion.div>
                     <h2 className="mb-2 text-xl font-semibold text-zinc-900 group-hover:text-orange-600 dark:text-white dark:group-hover:text-orange-400">
                       Data Analytics
                     </h2>
@@ -385,26 +458,41 @@ export default function Home() {
           variants={fadeUp}
           initial="hidden"
           animate="visible"
-          className="flex gap-4"
+          className="flex flex-wrap items-center justify-center gap-4"
         >
-          <motion.div {...glowPulse} className="rounded-xl">
-            <Link
-              href="/signup"
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 px-8 py-3.5 text-sm font-semibold text-white transition hover:from-blue-400 hover:to-purple-500 hover:shadow-lg hover:shadow-blue-500/25"
-            >
+          <motion.div
+            {...glowPulse}
+            className="rounded-2xl"
+            whileHover={{ scale: 1.04, transition: springBouncy }}
+            whileTap={{ scale: 0.96, transition: { duration: 0.1 } }}
+          >
+            <Link href="/signup" className="btn-primary group/btn">
               Get Started
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                className="transition-transform duration-200 group-hover/btn:translate-x-0.5"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <line x1="5" y1="12" x2="19" y2="12" />
                 <polyline points="12 5 19 12 12 19" />
               </svg>
             </Link>
           </motion.div>
-          <Link
-            href="/login"
-            className="rounded-xl border border-zinc-300 bg-white px-8 py-3.5 text-sm font-semibold text-zinc-900 backdrop-blur-sm transition hover:border-zinc-400 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900/50 dark:text-white dark:hover:border-zinc-500 dark:hover:bg-zinc-800/80"
+          <motion.div
+            whileHover={{ scale: 1.03, transition: springBouncy }}
+            whileTap={{ scale: 0.98, transition: { duration: 0.1 } }}
+            className="rounded-2xl"
           >
-            Log In
-          </Link>
+            <Link href="/login" className="btn-secondary">
+              Log In
+            </Link>
+          </motion.div>
         </motion.div>
 
         {/* Stats Row */}
@@ -456,7 +544,8 @@ export default function Home() {
               key={item.step}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.4 + i * 0.15, duration: 0.5 }}
+              transition={{ delay: 1.4 + i * 0.15, type: 'spring', stiffness: 300, damping: 24 }}
+              whileHover={{ scale: 1.02, y: -2, transition: springBouncy }}
               className={`relative overflow-hidden rounded-2xl border ${item.border} ${item.glow} p-6 backdrop-blur-sm`}
             >
               <div className={`mb-2 text-xs font-bold ${item.color}`}>

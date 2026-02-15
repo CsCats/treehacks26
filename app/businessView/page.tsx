@@ -62,7 +62,7 @@ export default function BusinessView() {
 
           <button
             type="submit"
-            className="w-full rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 py-3.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all duration-200 hover:from-blue-400 hover:to-purple-500 hover:shadow-xl hover:shadow-blue-500/30 active:scale-[0.98]"
+            className="btn-primary w-full"
           >
             Post task
           </button>
