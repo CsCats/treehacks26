@@ -1,19 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/firebase';
-import { collection, addDoc, getDocs, serverTimestamp, query, where, doc, updateDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, serverTimestamp, query, where, doc, updateDoc, Timestamp } from 'firebase/firestore';
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const businessId = searchParams.get('businessId');
+    const since = searchParams.get('since'); // ISO timestamp: return tasks created at or after this time
 
-    let q;
+    const constraints = [];
     if (businessId) {
-      q = query(collection(db, 'tasks'), where('businessId', '==', businessId));
-    } else {
-      q = query(collection(db, 'tasks'));
+      constraints.push(where('businessId', '==', businessId));
+    }
+    if (since) {
+      try {
+        const sinceDate = new Date(since);
+        if (!Number.isNaN(sinceDate.getTime())) {
+          constraints.push(where('createdAt', '>=', Timestamp.fromDate(sinceDate)));
+        }
+      } catch {
+        // ignore invalid since
+      }
     }
 
+    const q = constraints.length
+      ? query(collection(db, 'tasks'), ...constraints)
+      : query(collection(db, 'tasks'));
     const snapshot = await getDocs(q);
     const tasks = snapshot.docs.map(doc => ({
       id: doc.id,
