@@ -128,10 +128,10 @@ export default function Sidebar() {
       <div className="flex h-16 w-full items-center border-b border-zinc-200 overflow-hidden px-[14px] dark:border-zinc-800/40">
         <Link href="/" className="flex items-center gap-2">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 text-xs font-bold text-white">
-            R
+            O
           </div>
           <span className="whitespace-nowrap text-sm font-semibold text-zinc-900 opacity-0 transition-opacity duration-300 group-hover/sidebar:opacity-100 dark:text-white">
-            RoboData
+            OpenMotion
           </span>
         </Link>
       </div>

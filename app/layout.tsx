@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "RoboData - Crowdsourced Robotics Training",
+  title: "OpenMotion - Crowdsourced Robotics Training",
   description: "Crowdsourced platform for collecting human motion training data for robotics companies",
 };
 
