@@ -75,6 +75,7 @@ export default function UserUploadClient() {
   const [faceBlurEnabled, setFaceBlurEnabled] = useState(true);
 
   const videoRef = useRef<HTMLVideoElement>(null);
+  const reviewVideoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -137,6 +138,23 @@ export default function UserUploadClient() {
     }, 50);
     return () => clearInterval(interval);
   }, [posePlaying, phase, recordedFrames.length]);
+
+  // Frame → Video: when user moves the frame (slider, prev/next, play), seek the review video to that time
+  const seekReviewVideoToFrame = useCallback((frameIndex: number) => {
+    const video = reviewVideoRef.current;
+    if (!video || recordedFrames.length === 0) return;
+    const frame = recordedFrames[frameIndex] ?? recordedFrames[0];
+    const firstTs = recordedFrames[0].timestamp;
+    const timeSeconds = (frame.timestamp - firstTs) / 1000;
+    if (Number.isFinite(timeSeconds) && timeSeconds >= 0) {
+      video.currentTime = Math.min(timeSeconds, video.duration || 0);
+    }
+  }, [recordedFrames]);
+
+  useEffect(() => {
+    if (phase !== 'review' || recordedFrames.length === 0) return;
+    seekReviewVideoToFrame(posePreviewFrameIndex);
+  }, [phase, posePreviewFrameIndex, recordedFrames.length, seekReviewVideoToFrame]);
 
   const loadPoseModel = useCallback(async () => {
     if (detectorRef.current || loadingModel) return;
@@ -614,6 +632,7 @@ export default function UserUploadClient() {
             <h3 className="mb-2 text-sm font-medium text-zinc-600 dark:text-zinc-400">Recorded Video</h3>
             {recordedBlobUrl && (
               <video
+                ref={reviewVideoRef}
                 src={recordedBlobUrl}
                 controls
                 className="w-[500px] rounded-lg bg-zinc-200 dark:bg-black"
