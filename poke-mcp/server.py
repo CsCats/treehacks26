@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 from urllib.request import urlopen, Request
 from urllib.error import URLError, HTTPError
+from urllib.parse import quote
 from fastmcp import FastMCP
 
 # Project root directory
@@ -363,6 +364,125 @@ def get_new_tasks_since(since_iso: str) -> str:
         return json.dumps({"error": str(e)})
     except Exception as e:
         return json.dumps({"error": str(e)})
+
+
+@mcp.tool()
+def get_suggested_tasks_by_email(user_email: str) -> str:
+    """
+    Given a user's email, find the companies they follow and return open jobs (tasks) from those
+    companies that they have NOT yet submitted to. Returns JSON with 'userId', 'tasks' array,
+    and optionally 'message' or 'error'. Use when you only have the user's email (e.g. from Poke).
+    """
+    from datetime import datetime, timezone
+    try:
+        base = _api_base()
+        # 1. Resolve email -> userId
+        email_encoded = quote(user_email.strip(), safe="")
+        with urlopen(
+            Request(f"{base}/api/user-by-email?email={email_encoded}", method="GET"), timeout=10
+        ) as resp:
+            user_data = json.loads(resp.read().decode())
+        user_id = user_data.get("userId")
+        if not user_id:
+            return json.dumps({
+                "error": user_data.get("error", "User not found"),
+                "tasks": [],
+            }, indent=2)
+
+        # 2. Companies the user follows
+        with urlopen(Request(f"{base}/api/follows?userId={user_id}", method="GET"), timeout=10) as resp:
+            follows_data = json.loads(resp.read().decode())
+        follows = follows_data.get("follows") or []
+        followed_business_ids = {f["businessId"] for f in follows if f.get("businessId")}
+        if not followed_business_ids:
+            return json.dumps({
+                "userId": user_id,
+                "tasks": [],
+                "message": "User does not follow any companies.",
+            }, indent=2)
+
+        # 3. All tasks
+        with urlopen(Request(f"{base}/api/tasks", method="GET"), timeout=10) as resp:
+            all_tasks = json.loads(resp.read().decode())
+        if not isinstance(all_tasks, list):
+            return json.dumps({"userId": user_id, "tasks": [], "error": "Unexpected tasks response"}, indent=2)
+
+        # 4. Submissions by this user
+        with urlopen(
+            Request(f"{base}/api/submissions?contributorId={user_id}", method="GET"), timeout=10
+        ) as resp:
+            submissions = json.loads(resp.read().decode())
+        submitted_task_ids = {
+            s.get("taskId")
+            for s in (submissions if isinstance(submissions, list) else [])
+            if s.get("taskId")
+        }
+
+        # 5. Filter: from followed companies, not submitted, open, not expired
+        now = datetime.now(timezone.utc)
+        out = []
+        for t in all_tasks:
+            if t.get("businessId") not in followed_business_ids:
+                continue
+            if t.get("id") in submitted_task_ids:
+                continue
+            if t.get("status") == "closed":
+                continue
+            if t.get("deadline"):
+                try:
+                    dl = t["deadline"].replace("Z", "+00:00") if isinstance(t["deadline"], str) else None
+                    if dl:
+                        deadline = datetime.fromisoformat(dl)
+                        if deadline.tzinfo is None:
+                            deadline = deadline.replace(tzinfo=timezone.utc)
+                        if deadline < now:
+                            continue
+                except Exception:
+                    pass
+            out.append(t)
+
+        return json.dumps({"userId": user_id, "tasks": out}, indent=2)
+    except (URLError, HTTPError) as e:
+        return json.dumps({"error": str(e), "tasks": []}, indent=2)
+    except Exception as e:
+        return json.dumps({"error": str(e), "tasks": []}, indent=2)
+
+
+@mcp.tool()
+def get_unapproved_videos_by_email(user_email: str) -> str:
+    """
+    Given a user's email, return a list of their video submissions that are still unapproved
+    (status is 'pending' - awaiting business review). Returns JSON with 'userId', 'submissions'
+    array (id, taskId, status, videoUrl, createdAt, contributorName, etc.), or 'error' if user
+    not found.
+    """
+    try:
+        base = _api_base()
+        email_encoded = quote(user_email.strip(), safe="")
+        with urlopen(
+            Request(f"{base}/api/user-by-email?email={email_encoded}", method="GET"), timeout=10
+        ) as resp:
+            user_data = json.loads(resp.read().decode())
+        user_id = user_data.get("userId")
+        if not user_id:
+            return json.dumps({
+                "error": user_data.get("error", "User not found"),
+                "submissions": [],
+            }, indent=2)
+
+        with urlopen(
+            Request(f"{base}/api/submissions?contributorId={user_id}", method="GET"), timeout=10
+        ) as resp:
+            all_subs = json.loads(resp.read().decode())
+        if not isinstance(all_subs, list):
+            return json.dumps({"userId": user_id, "submissions": [], "error": "Unexpected response"}, indent=2)
+
+        unapproved = [s for s in all_subs if s.get("status") == "pending"]
+        return json.dumps({"userId": user_id, "submissions": unapproved}, indent=2)
+    except (URLError, HTTPError) as e:
+        return json.dumps({"error": str(e), "submissions": []}, indent=2)
+    except Exception as e:
+        return json.dumps({"error": str(e), "submissions": []}, indent=2)
 
 
 if __name__ == "__main__":
