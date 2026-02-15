@@ -74,6 +74,16 @@ export default function UserUploadClient() {
   const [posePlaying, setPosePlaying] = useState(false);
   const [faceBlurEnabled, setFaceBlurEnabled] = useState(true);
 
+  // Gemini task verification
+  const [verification, setVerification] = useState<{
+    verdict: 'pass' | 'fail' | 'uncertain';
+    confidence: number;
+    reason: string;
+    details: string;
+  } | null>(null);
+  const [verifying, setVerifying] = useState(false);
+  const [verificationError, setVerificationError] = useState<string | null>(null);
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const reviewVideoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -123,6 +133,14 @@ export default function UserUploadClient() {
       }
     };
   }, [stream]);
+
+  // Auto-verify with Gemini when entering review phase
+  useEffect(() => {
+    if (phase === 'review' && recordedBlob && selectedTask && !verification && !verifying) {
+      verifyTask();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase]);
 
   // Frame player: advance one frame while playing, stop at end
   useEffect(() => {
@@ -498,6 +516,8 @@ export default function UserUploadClient() {
     setRecordedBlobUrl(null);
     setRecordedBlob(null);
     setRecordedFrames([]);
+    setVerification(null);
+    setVerificationError(null);
     setPhase('camera');
     setTimeout(() => startCamera(), 100);
   };
@@ -508,8 +528,96 @@ export default function UserUploadClient() {
     setRecordedFrames([]);
     setUploadSuccess(false);
     setSelectedTask(null);
+    setVerification(null);
+    setVerificationError(null);
     setPhase('select-task');
   };
+
+  // Extract 3 frames (25%, 50%, 75%) from the video as base64 JPEGs
+  const extractFrames = useCallback(
+    (blob: Blob): Promise<string[]> => {
+      return new Promise((resolve, reject) => {
+        const video = document.createElement('video');
+        video.preload = 'auto';
+        video.muted = true;
+        video.src = URL.createObjectURL(blob);
+
+        video.onloadedmetadata = () => {
+          const duration = video.duration;
+          const d = Number.isFinite(duration) && duration > 0 ? duration : 4;
+          // Sample at 25%, 50%, 75% of the video
+          const times = [d * 0.25, d * 0.5, d * 0.75];
+
+          const frames: string[] = [];
+          let idx = 0;
+
+          const seekNext = () => {
+            if (idx >= times.length) {
+              URL.revokeObjectURL(video.src);
+              resolve(frames);
+              return;
+            }
+            video.currentTime = Math.min(times[idx], d - 0.1);
+          };
+
+          video.onseeked = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth || 640;
+            canvas.height = video.videoHeight || 480;
+            canvas.getContext('2d')!.drawImage(video, 0, 0, canvas.width, canvas.height);
+            frames.push(canvas.toDataURL('image/jpeg', 0.7));
+            idx++;
+            seekNext();
+          };
+
+          video.onerror = () => {
+            URL.revokeObjectURL(video.src);
+            reject(new Error('Failed to load video for frame extraction'));
+          };
+
+          seekNext();
+        };
+      });
+    },
+    []
+  );
+
+  // Run Gemini VLM verification — extracts 3 frames and sends to Gemini
+  const verifyTask = useCallback(async () => {
+    if (!recordedBlob || !selectedTask) return;
+    setVerifying(true);
+    setVerification(null);
+    setVerificationError(null);
+
+    try {
+      const frames = await extractFrames(recordedBlob);
+      console.log(`Extracted ${frames.length} frames for verification`);
+
+      const res = await fetch('/api/verify-task', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          frames,
+          taskTitle: selectedTask.title,
+          taskDescription: selectedTask.description || '',
+          taskRequirements: selectedTask.requirements || '',
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setVerification(data);
+      } else {
+        const err = await res.json();
+        setVerificationError(err.error || 'Verification request failed');
+      }
+    } catch (error) {
+      console.error('Verification error:', error);
+      setVerificationError('Failed to verify video. Check your API key and try again.');
+    } finally {
+      setVerifying(false);
+    }
+  }, [recordedBlob, selectedTask, extractFrames]);
 
   // --- TASK SELECTION PHASE ---
   if (phase === 'select-task') {
@@ -701,6 +809,94 @@ export default function UserUploadClient() {
                   className="h-2 w-full max-w-md cursor-pointer appearance-none rounded-lg bg-zinc-200 accent-blue-500 dark:bg-zinc-700"
                 />
                 <p className="text-xs text-zinc-500">Drag to rotate the 3D view</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Gemini AI Task Verification */}
+        <div className="mt-8 w-full max-w-3xl">
+          <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-lg font-semibold text-zinc-900 dark:text-white">
+                  AI Task Verification
+                </h3>
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                  Gemini VLM watches your full video to verify it matches the task
+                </p>
+              </div>
+              {!verifying && (
+                <button
+                  onClick={verifyTask}
+                  className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+                >
+                  {verification ? 'Re-verify' : 'Verify'}
+                </button>
+              )}
+            </div>
+
+            {verifying && (
+              <div className="flex items-center gap-3 rounded-lg bg-indigo-50 px-4 py-3 dark:bg-indigo-900/20">
+                <span className="h-2 w-2 animate-pulse rounded-full bg-indigo-500" />
+                <span className="text-sm text-indigo-700 dark:text-indigo-300">
+                  Gemini VLM is analyzing your recording...
+                </span>
+              </div>
+            )}
+
+            {verificationError && (
+              <div className="rounded-lg bg-red-50 px-4 py-3 dark:bg-red-900/20">
+                <p className="text-sm text-red-700 dark:text-red-400">{verificationError}</p>
+              </div>
+            )}
+
+            {verification && (
+              <div
+                className={`rounded-lg px-4 py-4 ${
+                  verification.verdict === 'pass'
+                    ? 'bg-green-50 dark:bg-green-900/20'
+                    : verification.verdict === 'fail'
+                    ? 'bg-red-50 dark:bg-red-900/20'
+                    : 'bg-yellow-50 dark:bg-yellow-900/20'
+                }`}
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <span
+                    className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold ${
+                      verification.verdict === 'pass'
+                        ? 'bg-green-200 text-green-800 dark:bg-green-800 dark:text-green-200'
+                        : verification.verdict === 'fail'
+                        ? 'bg-red-200 text-red-800 dark:bg-red-800 dark:text-red-200'
+                        : 'bg-yellow-200 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-200'
+                    }`}
+                  >
+                    {verification.verdict === 'pass'
+                      ? '✓ Pass'
+                      : verification.verdict === 'fail'
+                      ? '✗ Fail'
+                      : '? Uncertain'}
+                  </span>
+                  <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                    Confidence: {verification.confidence}%
+                  </span>
+                </div>
+                <p
+                  className={`text-sm font-medium ${
+                    verification.verdict === 'pass'
+                      ? 'text-green-800 dark:text-green-300'
+                      : verification.verdict === 'fail'
+                      ? 'text-red-800 dark:text-red-300'
+                      : 'text-yellow-800 dark:text-yellow-300'
+                  }`}
+                >
+                  {verification.reason}
+                </p>
+                {verification.details && (
+                  <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+                    {verification.details}
+                  </p>
+                )}
               </div>
             )}
           </div>
