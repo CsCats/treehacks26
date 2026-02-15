@@ -166,12 +166,12 @@ export default function DeveloperPage() {
   }
 
   return (
-    <div className="min-h-screen p-8 text-white">
+    <div className="min-h-screen p-8 text-zinc-900 dark:text-white">
       <div className="mx-auto max-w-5xl">
         <div className="mb-8 flex items-start justify-between">
           <div>
             <h1 className="mb-1 text-3xl font-bold">Developer Integration</h1>
-            <p className="text-zinc-400">
+            <p className="text-zinc-500 dark:text-zinc-400">
               Create API endpoints to programmatically access your training data
             </p>
           </div>
@@ -187,12 +187,12 @@ export default function DeveloperPage() {
         {showCreate && (
           <form
             onSubmit={createEndpoint}
-            className="mb-8 rounded-xl border border-zinc-800 bg-zinc-900 p-6"
+            className="mb-8 rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
           >
             <h2 className="mb-4 text-lg font-semibold">Create New API Endpoint</h2>
             <div className="space-y-4">
               <div>
-                <label className="mb-1 block text-sm font-medium text-zinc-400">
+                <label className="mb-1 block text-sm font-medium text-zinc-600 dark:text-zinc-400">
                   Endpoint Name
                 </label>
                 <input
@@ -200,13 +200,13 @@ export default function DeveloperPage() {
                   value={newName}
                   onChange={e => setNewName(e.target.value)}
                   placeholder="e.g., Production Data Feed"
-                  className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-white placeholder-zinc-500 focus:border-blue-500 focus:outline-none"
+                  className="w-full rounded-lg border border-zinc-300 bg-zinc-50 px-4 py-2 text-zinc-900 placeholder-zinc-400 focus:border-blue-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-500 transition"
                   required
                 />
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-zinc-400">
+                <label className="mb-1 block text-sm font-medium text-zinc-600 dark:text-zinc-400">
                   Task
                 </label>
                 {tasks.length === 0 ? (
@@ -217,7 +217,7 @@ export default function DeveloperPage() {
                   <select
                     value={newTaskId}
                     onChange={e => setNewTaskId(e.target.value)}
-                    className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-white focus:border-blue-500 focus:outline-none"
+                    className="w-full rounded-lg border border-zinc-300 bg-zinc-50 px-4 py-2 text-zinc-900 focus:border-blue-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:text-white transition"
                     required
                   >
                     <option value="">Select a task...</option>
@@ -229,7 +229,7 @@ export default function DeveloperPage() {
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-medium text-zinc-400">
+                <label className="mb-2 block text-sm font-medium text-zinc-600 dark:text-zinc-400">
                   Submission Status Filter
                 </label>
                 <div className="flex gap-2">
@@ -240,8 +240,8 @@ export default function DeveloperPage() {
                       onClick={() => setStatusFilter(s)}
                       className={`rounded-lg border px-4 py-1.5 text-sm font-medium capitalize transition ${
                         statusFilter === s
-                          ? 'border-blue-500 bg-blue-500/10 text-blue-400'
-                          : 'border-zinc-700 bg-zinc-800 text-zinc-400 hover:border-zinc-600'
+                          ? 'border-blue-500 bg-blue-500/10 text-blue-500 dark:text-blue-400'
+                          : 'border-zinc-300 bg-zinc-100 text-zinc-600 hover:border-zinc-400 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:border-zinc-600'
                       }`}
                     >
                       {s}
@@ -251,7 +251,7 @@ export default function DeveloperPage() {
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-medium text-zinc-400">
+                <label className="mb-2 block text-sm font-medium text-zinc-600 dark:text-zinc-400">
                   Include in Response
                 </label>
                 <div className="flex flex-wrap gap-4">
@@ -265,9 +265,9 @@ export default function DeveloperPage() {
                         type="checkbox"
                         checked={opt.value}
                         onChange={e => opt.setter(e.target.checked)}
-                        className="h-4 w-4 rounded border-zinc-600 bg-zinc-800 text-blue-600 focus:ring-blue-500"
+                        className="h-4 w-4 rounded border-zinc-300 bg-zinc-100 text-blue-600 focus:ring-blue-500 dark:border-zinc-600 dark:bg-zinc-800"
                       />
-                      <span className="text-sm text-zinc-300">{opt.label}</span>
+                      <span className="text-sm text-zinc-700 dark:text-zinc-300">{opt.label}</span>
                     </label>
                   ))}
                 </div>
@@ -286,10 +286,10 @@ export default function DeveloperPage() {
 
         {/* Endpoints List */}
         {endpoints.length === 0 && !showCreate ? (
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-12 text-center">
+          <div className="rounded-xl border border-zinc-200 bg-white p-12 text-center shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
             <div className="mb-3 text-4xl">🔌</div>
-            <p className="text-zinc-400">No API endpoints yet.</p>
-            <p className="mt-1 text-sm text-zinc-600">
+            <p className="text-zinc-600 dark:text-zinc-400">No API endpoints yet.</p>
+            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-600">
               Create an endpoint to start accessing your training data programmatically.
             </p>
           </div>
@@ -302,7 +302,7 @@ export default function DeveloperPage() {
               return (
                 <div
                   key={ep.id}
-                  className="rounded-xl border border-zinc-800 bg-zinc-900 overflow-hidden"
+                  className="rounded-xl border border-zinc-200 bg-white overflow-hidden shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
                 >
                   <div className="p-6">
                     <div className="flex items-start justify-between">
@@ -329,13 +329,13 @@ export default function DeveloperPage() {
                             ENDPOINT URL
                           </label>
                           <div className="flex items-center gap-2">
-                            <code className="flex-1 truncate rounded-lg bg-zinc-800 px-3 py-2 text-sm text-zinc-300 font-mono">
-                              <span className="text-green-400">GET</span>{' '}
+                            <code className="flex-1 truncate rounded-lg bg-zinc-100 px-3 py-2 text-sm text-zinc-700 font-mono dark:bg-zinc-800 dark:text-zinc-300">
+                              <span className="text-green-600 dark:text-green-400">GET</span>{' '}
                               {endpointUrl}
                             </code>
                             <button
                               onClick={() => copyToClipboard(endpointUrl, `url-${ep.id}`)}
-                              className="shrink-0 rounded-lg bg-zinc-800 px-3 py-2 text-xs font-medium text-zinc-400 hover:bg-zinc-700 hover:text-white"
+                              className="shrink-0 rounded-lg bg-zinc-100 px-3 py-2 text-xs font-medium text-zinc-600 hover:bg-zinc-200 hover:text-zinc-900 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700 dark:hover:text-white transition"
                             >
                               {copiedId === `url-${ep.id}` ? '✓ Copied' : 'Copy'}
                             </button>
@@ -348,12 +348,12 @@ export default function DeveloperPage() {
                             API KEY
                           </label>
                           <div className="flex items-center gap-2">
-                            <code className="flex-1 truncate rounded-lg bg-zinc-800 px-3 py-2 text-sm text-zinc-300 font-mono">
+                            <code className="flex-1 truncate rounded-lg bg-zinc-100 px-3 py-2 text-sm text-zinc-700 font-mono dark:bg-zinc-800 dark:text-zinc-300">
                               {ep.apiKey}
                             </code>
                             <button
                               onClick={() => copyToClipboard(ep.apiKey, `key-${ep.id}`)}
-                              className="shrink-0 rounded-lg bg-zinc-800 px-3 py-2 text-xs font-medium text-zinc-400 hover:bg-zinc-700 hover:text-white"
+                              className="shrink-0 rounded-lg bg-zinc-100 px-3 py-2 text-xs font-medium text-zinc-600 hover:bg-zinc-200 hover:text-zinc-900 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700 dark:hover:text-white transition"
                             >
                               {copiedId === `key-${ep.id}` ? '✓ Copied' : 'Copy'}
                             </button>
@@ -363,13 +363,13 @@ export default function DeveloperPage() {
                         {/* Config badges */}
                         <div className="mt-3 flex flex-wrap gap-1.5">
                           {ep.includeVideo && (
-                            <span className="rounded bg-zinc-800 px-2 py-0.5 text-xs text-zinc-400">Video URLs</span>
+                            <span className="rounded bg-zinc-100 px-2 py-0.5 text-xs text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">Video URLs</span>
                           )}
                           {ep.includePose && (
-                            <span className="rounded bg-zinc-800 px-2 py-0.5 text-xs text-zinc-400">Pose Data</span>
+                            <span className="rounded bg-zinc-100 px-2 py-0.5 text-xs text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">Pose Data</span>
                           )}
                           {ep.includeMetadata && (
-                            <span className="rounded bg-zinc-800 px-2 py-0.5 text-xs text-zinc-400">Metadata</span>
+                            <span className="rounded bg-zinc-100 px-2 py-0.5 text-xs text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">Metadata</span>
                           )}
                         </div>
                       </div>
@@ -392,14 +392,14 @@ export default function DeveloperPage() {
 
                     {/* Usage Example */}
                     <details className="mt-4">
-                      <summary className="cursor-pointer text-xs font-medium text-zinc-500 hover:text-zinc-400">
+                      <summary className="cursor-pointer text-xs font-medium text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-400 transition">
                         Usage Examples
                       </summary>
                       <div className="mt-2 space-y-2">
                         <div>
-                          <label className="mb-1 block text-xs text-zinc-600">cURL</label>
+                          <label className="mb-1 block text-xs text-zinc-500 dark:text-zinc-600">cURL</label>
                           <div className="flex items-start gap-2">
-                            <pre className="flex-1 overflow-x-auto rounded-lg bg-zinc-800 p-3 text-xs text-zinc-300 font-mono">
+                            <pre className="flex-1 overflow-x-auto rounded-lg bg-zinc-100 p-3 text-xs text-zinc-700 font-mono dark:bg-zinc-800 dark:text-zinc-300">
 {`# Fetch all submissions
 curl "${endpointUrl}"
 
@@ -408,16 +408,16 @@ curl "${endpointUrl}?minRating=4"`}
                             </pre>
                             <button
                               onClick={() => copyToClipboard(`curl "${endpointUrl}"`, `curl-${ep.id}`)}
-                              className="shrink-0 rounded bg-zinc-800 px-2 py-1 text-xs text-zinc-500 hover:text-white"
+                              className="shrink-0 rounded bg-zinc-100 px-2 py-1 text-xs text-zinc-500 hover:text-zinc-900 dark:bg-zinc-800 dark:hover:text-white transition"
                             >
                               {copiedId === `curl-${ep.id}` ? '✓' : 'Copy'}
                             </button>
                           </div>
                         </div>
                         <div>
-                          <label className="mb-1 block text-xs text-zinc-600">Python</label>
+                          <label className="mb-1 block text-xs text-zinc-500 dark:text-zinc-600">Python</label>
                           <div className="flex items-start gap-2">
-                            <pre className="flex-1 overflow-x-auto rounded-lg bg-zinc-800 p-3 text-xs text-zinc-300 font-mono">
+                            <pre className="flex-1 overflow-x-auto rounded-lg bg-zinc-100 p-3 text-xs text-zinc-700 font-mono dark:bg-zinc-800 dark:text-zinc-300">
 {`import requests
 
 # Fetch all submissions
@@ -437,16 +437,16 @@ print(f"{high_quality['count']} submissions rated 4+ stars")`}
                                 `import requests\n\nresponse = requests.get("${endpointUrl}")\ndata = response.json()\nprint(f"Got {data['count']} submissions")\nfor sub in data['submissions']:\n    print(sub['id'], sub.get('rating'), sub.get('videoUrl', ''))\n\n# Filter by minimum rating\nresponse = requests.get("${endpointUrl}", params={"minRating": 4})\nhigh_quality = response.json()\nprint(f"{high_quality['count']} submissions rated 4+ stars")`,
                                 `python-${ep.id}`
                               )}
-                              className="shrink-0 rounded bg-zinc-800 px-2 py-1 text-xs text-zinc-500 hover:text-white"
+                              className="shrink-0 rounded bg-zinc-100 px-2 py-1 text-xs text-zinc-500 hover:text-zinc-900 dark:bg-zinc-800 dark:hover:text-white transition"
                             >
                               {copiedId === `python-${ep.id}` ? '✓' : 'Copy'}
                             </button>
                           </div>
                         </div>
                         <div>
-                          <label className="mb-1 block text-xs text-zinc-600">JavaScript</label>
+                          <label className="mb-1 block text-xs text-zinc-500 dark:text-zinc-600">JavaScript</label>
                           <div className="flex items-start gap-2">
-                            <pre className="flex-1 overflow-x-auto rounded-lg bg-zinc-800 p-3 text-xs text-zinc-300 font-mono">
+                            <pre className="flex-1 overflow-x-auto rounded-lg bg-zinc-100 p-3 text-xs text-zinc-700 font-mono dark:bg-zinc-800 dark:text-zinc-300">
 {`// Fetch all submissions
 const res = await fetch("${endpointUrl}");
 const data = await res.json();
@@ -465,7 +465,7 @@ console.log(\`\${quality.count} high-quality submissions\`);`}
                                 `const res = await fetch("${endpointUrl}");\nconst data = await res.json();\nconsole.log(\`Got \${data.count} submissions\`);\ndata.submissions.forEach(sub => {\n  console.log(sub.id, sub.rating, sub.videoUrl);\n});\n\n// Filter by minimum rating (4+ stars)\nconst filtered = await fetch("${endpointUrl}?minRating=4");\nconst quality = await filtered.json();\nconsole.log(\`\${quality.count} high-quality submissions\`);`,
                                 `js-${ep.id}`
                               )}
-                              className="shrink-0 rounded bg-zinc-800 px-2 py-1 text-xs text-zinc-500 hover:text-white"
+                              className="shrink-0 rounded bg-zinc-100 px-2 py-1 text-xs text-zinc-500 hover:text-zinc-900 dark:bg-zinc-800 dark:hover:text-white transition"
                             >
                               {copiedId === `js-${ep.id}` ? '✓' : 'Copy'}
                             </button>
@@ -477,23 +477,23 @@ console.log(\`\${quality.count} high-quality submissions\`);`}
 
                   {/* Test Response Panel */}
                   {testingEndpoint === ep.id && (
-                    <div className="border-t border-zinc-800 bg-zinc-950 p-4">
+                    <div className="border-t border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-950">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-xs font-medium text-zinc-500">RESPONSE</span>
                         <button
                           onClick={() => { setTestingEndpoint(null); setTestResponse(null); }}
-                          className="text-xs text-zinc-600 hover:text-zinc-400"
+                          className="text-xs text-zinc-500 hover:text-zinc-700 dark:text-zinc-600 dark:hover:text-zinc-400 transition"
                         >
                           Close
                         </button>
                       </div>
                       {testLoading ? (
                         <div className="flex items-center gap-2 py-4">
-                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-700 border-t-blue-400" />
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-300 border-t-blue-400 dark:border-zinc-700" />
                           <span className="text-sm text-zinc-500">Fetching...</span>
                         </div>
                       ) : (
-                        <pre className="max-h-96 overflow-auto rounded-lg bg-zinc-900 p-4 text-xs text-zinc-300 font-mono">
+                        <pre className="max-h-96 overflow-auto rounded-lg bg-zinc-100 p-4 text-xs text-zinc-700 font-mono dark:bg-zinc-900 dark:text-zinc-300">
                           {testResponse}
                         </pre>
                       )}
