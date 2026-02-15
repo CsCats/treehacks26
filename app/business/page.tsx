@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/AuthContext';
 
 const PoseSkeletonViewer = dynamic(() => import('@/components/PoseSkeletonViewer'), {
   ssr: false,
-  loading: () => <div className="w-[400px] h-[300px] bg-zinc-900 rounded-lg animate-pulse" />,
+  loading: () => <div className="w-[400px] h-[300px] bg-zinc-200 dark:bg-zinc-900 rounded-lg animate-pulse" />,
 });
 
 interface Task {
@@ -321,11 +321,11 @@ export default function BusinessDashboard() {
   // --- SUBMISSIONS VIEW ---
   if (view === 'submissions' && selectedTask) {
     return (
-      <div className="min-h-screen p-8 text-white">
+      <div className="min-h-screen p-8 text-zinc-900 dark:text-white">
         <div className="mx-auto max-w-6xl">
           <button
             onClick={() => { setView('tasks'); setSelectedTask(null); setSubmissions([]); }}
-            className="mb-6 text-sm text-zinc-500 hover:text-zinc-300"
+            className="mb-6 text-sm text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition"
           >
             ← Back to Tasks
           </button>
@@ -333,7 +333,7 @@ export default function BusinessDashboard() {
           <div className="mb-6 flex items-start justify-between">
             <div>
               <h1 className="text-2xl font-bold">{selectedTask.title}</h1>
-              <p className="mt-1 text-zinc-400">{selectedTask.description}</p>
+              <p className="mt-1 text-zinc-500 dark:text-zinc-400">{selectedTask.description}</p>
               {selectedTask.requirements && (
                 <p className="mt-1 text-sm text-zinc-500">
                   Requirements: {selectedTask.requirements}
@@ -343,7 +343,7 @@ export default function BusinessDashboard() {
             <button
               onClick={downloadAllData}
               disabled={submissions.length === 0}
-              className="rounded-lg bg-blue-600 px-6 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+              className="rounded-lg bg-blue-600 px-6 py-2 text-sm font-medium text-white shadow-lg shadow-blue-600/20 hover:bg-blue-700 disabled:opacity-50 transition"
             >
               Download All Data ({submissions.length})
             </button>
@@ -352,7 +352,7 @@ export default function BusinessDashboard() {
           {loadingSubmissions ? (
             <div className="text-zinc-500">Loading submissions...</div>
           ) : submissions.length === 0 ? (
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-12 text-center text-zinc-500">
+            <div className="rounded-xl border border-zinc-200 bg-white p-12 text-center text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900">
               No submissions yet. Share this task with users to start collecting data.
             </div>
           ) : (
@@ -360,7 +360,7 @@ export default function BusinessDashboard() {
               {submissions.map((sub, index) => (
                 <div
                   key={sub.id}
-                  className="rounded-xl border border-zinc-800 bg-zinc-900 overflow-hidden"
+                  className="rounded-xl border border-zinc-200 bg-white overflow-hidden dark:border-zinc-800 dark:bg-zinc-900 transition-colors"
                 >
                   <div
                     role="button"
@@ -368,7 +368,7 @@ export default function BusinessDashboard() {
                     onClick={() =>
                       setExpandedSubmission(expandedSubmission === sub.id ? null : sub.id)
                     }
-                    className="flex w-full cursor-pointer items-center justify-between p-4 text-left hover:bg-zinc-800/50"
+                    className="flex w-full cursor-pointer items-center justify-between p-4 text-left hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition"
                   >
                     <div className="flex items-center gap-2">
                       <span className="font-medium">Submission #{index + 1}</span>
@@ -440,12 +440,12 @@ export default function BusinessDashboard() {
                       {(!sub.status || sub.status === 'pending') && rejectingId !== sub.id && (
                         <>
                           {sub.aiVerification?.verdict === 'pass' ? (
-                            /* AI already approved — only show Override */
+                            /* AI approved — only show Override & Reject */
                             <button
                               onClick={e => { e.stopPropagation(); setRejectingId(sub.id); setRejectFeedback(''); }}
                               className="rounded bg-orange-600/20 px-3 py-1 text-xs font-medium text-orange-400 hover:bg-orange-600/30"
                             >
-                              Override Decision
+                              Override &amp; Reject
                             </button>
                           ) : (
                             /* No AI approval — show normal Approve + Reject */
@@ -476,7 +476,7 @@ export default function BusinessDashboard() {
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={e => e.stopPropagation()}
-                        className="rounded bg-zinc-700 px-3 py-1 text-xs hover:bg-zinc-600"
+                        className="rounded bg-zinc-200 px-3 py-1 text-xs text-zinc-700 hover:bg-zinc-300 dark:bg-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-600 transition"
                       >
                         Download Video
                       </a>
@@ -485,7 +485,7 @@ export default function BusinessDashboard() {
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={e => e.stopPropagation()}
-                        className="rounded bg-zinc-700 px-3 py-1 text-xs hover:bg-zinc-600"
+                        className="rounded bg-zinc-200 px-3 py-1 text-xs text-zinc-700 hover:bg-zinc-300 dark:bg-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-600 transition"
                       >
                         Download JSON
                       </a>
@@ -497,13 +497,13 @@ export default function BusinessDashboard() {
 
                   {/* Reject feedback input */}
                   {rejectingId === sub.id && (
-                    <div className="flex items-center gap-2 border-t border-zinc-800 px-4 py-3 bg-zinc-900/50" onClick={e => e.stopPropagation()}>
+                    <div className="flex items-center gap-2 border-t border-zinc-200 px-4 py-3 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/50" onClick={e => e.stopPropagation()}>
                       <input
                         type="text"
                         value={rejectFeedback}
                         onChange={e => setRejectFeedback(e.target.value)}
                         placeholder="Add feedback (e.g., lighting too dark, please resubmit)..."
-                        className="flex-1 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-sm text-white placeholder-zinc-500 focus:border-red-500 focus:outline-none"
+                        className="flex-1 rounded-lg border border-zinc-300 bg-zinc-50 px-3 py-1.5 text-sm text-zinc-900 placeholder-zinc-400 focus:border-red-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-500"
                         autoFocus
                         onKeyDown={e => {
                           if (e.key === 'Enter') updateSubmissionStatus(sub.id, 'rejected', rejectFeedback);
@@ -518,7 +518,7 @@ export default function BusinessDashboard() {
                       </button>
                       <button
                         onClick={() => { setRejectingId(null); setRejectFeedback(''); }}
-                        className="rounded-lg px-3 py-1.5 text-xs text-zinc-500 hover:text-zinc-300"
+                        className="rounded-lg px-3 py-1.5 text-xs text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition"
                       >
                         Cancel
                       </button>
@@ -526,10 +526,10 @@ export default function BusinessDashboard() {
                   )}
 
                   {expandedSubmission === sub.id && (
-                    <div className="border-t border-zinc-800 p-4">
+                    <div className="border-t border-zinc-200 p-4 dark:border-zinc-800">
                       <div className="flex flex-col gap-4 lg:flex-row">
                         <div className="flex-1">
-                          <h4 className="mb-2 text-sm font-medium text-zinc-400">Video</h4>
+                          <h4 className="mb-2 text-sm font-medium text-zinc-600 dark:text-zinc-400">Video</h4>
                           <video
                             src={sub.videoUrl}
                             controls
@@ -537,7 +537,7 @@ export default function BusinessDashboard() {
                           />
                         </div>
                         <div>
-                          <h4 className="mb-2 text-sm font-medium text-zinc-400">
+                          <h4 className="mb-2 text-sm font-medium text-zinc-600 dark:text-zinc-400">
                             3D Pose Preview
                           </h4>
                           <PoseSkeletonViewer
@@ -549,7 +549,7 @@ export default function BusinessDashboard() {
                             width={400}
                             height={300}
                           />
-                          <p className="mt-1 text-xs text-zinc-600">
+                          <p className="mt-1 text-xs text-zinc-500">
                             Drag to rotate • Scroll to zoom
                           </p>
                         </div>
@@ -575,7 +575,7 @@ export default function BusinessDashboard() {
                               🤖
                             </div>
                             <div>
-                              <h4 className="text-sm font-semibold text-white">
+                              <h4 className="text-sm font-semibold text-zinc-900 dark:text-white">
                                 AI Verification — {sub.aiVerification.verdict === 'pass' ? 'Approved' : sub.aiVerification.verdict === 'fail' ? 'Flagged' : 'Uncertain'}
                               </h4>
                               <p className="text-xs text-zinc-500">
@@ -585,25 +585,25 @@ export default function BusinessDashboard() {
                             </div>
                             <div className={`ml-auto rounded-full px-3 py-1 text-xs font-bold ${
                               sub.aiVerification.verdict === 'pass'
-                                ? 'bg-emerald-500/20 text-emerald-300'
+                                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300'
                                 : sub.aiVerification.verdict === 'fail'
-                                ? 'bg-red-500/20 text-red-300'
-                                : 'bg-yellow-500/20 text-yellow-300'
+                                ? 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300'
+                                : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-300'
                             }`}>
                               {sub.aiVerification.confidence}%
                             </div>
                           </div>
                           <p className={`text-sm font-medium ${
                             sub.aiVerification.verdict === 'pass'
-                              ? 'text-emerald-300'
+                              ? 'text-emerald-700 dark:text-emerald-300'
                               : sub.aiVerification.verdict === 'fail'
-                              ? 'text-red-300'
-                              : 'text-yellow-300'
+                              ? 'text-red-700 dark:text-red-300'
+                              : 'text-yellow-700 dark:text-yellow-300'
                           }`}>
                             {sub.aiVerification.reason}
                           </p>
                           {sub.aiVerification.details && (
-                            <p className="mt-2 text-sm leading-relaxed text-zinc-400">
+                            <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
                               {sub.aiVerification.details}
                             </p>
                           )}
@@ -622,16 +622,16 @@ export default function BusinessDashboard() {
 
   // --- TASKS LIST VIEW ---
   return (
-    <div className="min-h-screen p-8 text-white">
+    <div className="min-h-screen p-8 text-zinc-900 dark:text-white">
       <div className="mx-auto max-w-4xl">
-        <a href="/" className="mb-6 inline-block text-sm text-zinc-500 hover:text-zinc-300">
+        <a href="/" className="mb-6 inline-block text-sm text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition">
           ← Back to Home
         </a>
 
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Business dashboard</h1>
-            <p className="mt-1 text-zinc-400">
+            <p className="mt-1 text-zinc-500 dark:text-zinc-400">
               Create tasks and manage crowdsourced training data
             </p>
           </div>
@@ -647,12 +647,12 @@ export default function BusinessDashboard() {
         {showCreateForm && (
           <form
             onSubmit={createTask}
-            className="mb-8 rounded-xl border border-zinc-800 bg-zinc-900 p-6"
+            className="mb-8 rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
           >
             <h2 className="mb-4 text-lg font-semibold">Create New Task</h2>
             <div className="space-y-4">
               <div>
-                <label className="mb-1 block text-sm font-medium text-zinc-400">
+                <label className="mb-1 block text-sm font-medium text-zinc-600 dark:text-zinc-400">
                   Task Title
                 </label>
                 <input
@@ -660,12 +660,12 @@ export default function BusinessDashboard() {
                   value={newTitle}
                   onChange={e => setNewTitle(e.target.value)}
                   placeholder="e.g., Pick up a cup from a table"
-                  className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-white placeholder-zinc-500 focus:border-blue-500 focus:outline-none"
+                  className="w-full rounded-lg border border-zinc-300 bg-zinc-50 px-4 py-2 text-zinc-900 placeholder-zinc-400 transition focus:border-blue-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-500"
                   required
                 />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-zinc-400">
+                <label className="mb-1 block text-sm font-medium text-zinc-600 dark:text-zinc-400">
                   Description
                 </label>
                 <textarea
@@ -673,12 +673,12 @@ export default function BusinessDashboard() {
                   onChange={e => setNewDescription(e.target.value)}
                   placeholder="Describe the task the user should perform in detail..."
                   rows={3}
-                  className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-white placeholder-zinc-500 focus:border-blue-500 focus:outline-none"
+                  className="w-full rounded-lg border border-zinc-300 bg-zinc-50 px-4 py-2 text-zinc-900 placeholder-zinc-400 transition focus:border-blue-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-500"
                   required
                 />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-zinc-400">
+                <label className="mb-1 block text-sm font-medium text-zinc-600 dark:text-zinc-400">
                   Requirements (optional)
                 </label>
                 <textarea
@@ -686,7 +686,7 @@ export default function BusinessDashboard() {
                   onChange={e => setNewRequirements(e.target.value)}
                   placeholder="e.g., Must be filmed from front angle, full body visible, well-lit environment..."
                   rows={2}
-                  className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-white placeholder-zinc-500 focus:border-blue-500 focus:outline-none"
+                  className="w-full rounded-lg border border-zinc-300 bg-zinc-50 px-4 py-2 text-zinc-900 placeholder-zinc-400 transition focus:border-blue-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-500"
                 />
                 <div className="mt-2 flex items-center gap-3">
                   <button
@@ -724,7 +724,7 @@ export default function BusinessDashboard() {
                       }
                     }}
                     disabled={reviewingDescription}
-                    className="rounded-lg border border-zinc-600 bg-zinc-800 px-3 py-1.5 text-sm font-medium text-zinc-300 hover:bg-zinc-700 disabled:opacity-50"
+                    className="rounded-lg border border-zinc-300 bg-zinc-100 px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-200 disabled:opacity-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700 transition"
                   >
                     {reviewingDescription ? 'Reviewing…' : 'Review with AI'}
                   </button>
@@ -738,10 +738,10 @@ export default function BusinessDashboard() {
                   <div
                     className={`mt-3 rounded-lg border px-3 py-2.5 text-sm ${
                       reviewScore >= 4
-                        ? 'border-emerald-800/60 bg-emerald-950/40 text-emerald-200'
+                        ? 'border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-800/60 dark:bg-emerald-950/40 dark:text-emerald-200'
                         : reviewScore >= 3
-                          ? 'border-amber-800/60 bg-amber-950/40 text-amber-200'
-                          : 'border-red-900/60 bg-red-950/40 text-red-200'
+                          ? 'border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-200'
+                          : 'border-red-300 bg-red-50 text-red-800 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200'
                     }`}
                   >
                     <div className="mb-2 flex gap-0.5">
@@ -755,7 +755,7 @@ export default function BusinessDashboard() {
                                 : reviewScore >= 3
                                   ? 'bg-amber-500'
                                   : 'bg-red-500'
-                              : 'bg-zinc-700'
+                              : 'bg-zinc-300 dark:bg-zinc-700'
                           }`}
                         />
                       ))}
@@ -767,12 +767,12 @@ export default function BusinessDashboard() {
                           ? 'Could be clearer'
                           : 'Needs improvement'}
                     </p>
-                    <p className="mt-0.5 text-zinc-400">{reviewFeedback}</p>
+                    <p className="mt-0.5 text-zinc-600 dark:text-zinc-400">{reviewFeedback}</p>
                   </div>
                 )}
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-zinc-400">
+                <label className="mb-1 block text-sm font-medium text-zinc-600 dark:text-zinc-400">
                   Price per Approved Video ($)
                 </label>
                 <div className="relative">
@@ -784,25 +784,25 @@ export default function BusinessDashboard() {
                     value={newPrice}
                     onChange={e => setNewPrice(e.target.value)}
                     placeholder="5.00"
-                    className="w-full rounded-lg border border-zinc-700 bg-zinc-800 py-2 pl-7 pr-4 text-white placeholder-zinc-500 focus:border-blue-500 focus:outline-none"
+                    className="w-full rounded-lg border border-zinc-300 bg-zinc-50 py-2 pl-7 pr-4 text-zinc-900 placeholder-zinc-400 transition focus:border-blue-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-500"
                   />
                 </div>
-                <p className="mt-1 text-xs text-zinc-600">Amount paid to contributor per approved submission</p>
+                <p className="mt-1 text-xs text-zinc-500">Amount paid to contributor per approved submission</p>
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-zinc-400">
+                <label className="mb-1 block text-sm font-medium text-zinc-600 dark:text-zinc-400">
                   Deadline (optional)
                 </label>
                 <input
                   type="date"
                   value={newDeadline}
                   onChange={e => setNewDeadline(e.target.value)}
-                  className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-white placeholder-zinc-500 focus:border-blue-500 focus:outline-none"
+                  className="w-full rounded-lg border border-zinc-300 bg-zinc-50 px-4 py-2 text-zinc-900 placeholder-zinc-400 transition focus:border-blue-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-500"
                 />
-                <p className="mt-1 text-xs text-zinc-600">Task will auto-show as expired after this date</p>
+                <p className="mt-1 text-xs text-zinc-500">Task will auto-show as expired after this date</p>
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-zinc-400">
+                <label className="mb-1 block text-sm font-medium text-zinc-600 dark:text-zinc-400">
                   Webhook URL (optional)
                 </label>
                 <input
@@ -810,9 +810,9 @@ export default function BusinessDashboard() {
                   value={newWebhookUrl}
                   onChange={e => setNewWebhookUrl(e.target.value)}
                   placeholder="https://your-server.com/webhook"
-                  className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-white placeholder-zinc-500 focus:border-blue-500 focus:outline-none"
+                  className="w-full rounded-lg border border-zinc-300 bg-zinc-50 px-4 py-2 text-zinc-900 placeholder-zinc-400 transition focus:border-blue-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-500"
                 />
-                <p className="mt-1 text-xs text-zinc-600">Receive a POST request whenever a new submission arrives</p>
+                <p className="mt-1 text-xs text-zinc-500">Receive a POST request whenever a new submission arrives</p>
               </div>
               <button
                 type="submit"
@@ -827,7 +827,7 @@ export default function BusinessDashboard() {
 
         {/* Tasks List */}
         {tasks.length === 0 ? (
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-12 text-center text-zinc-500">
+          <div className="rounded-xl border border-zinc-200 bg-white p-12 text-center text-zinc-500 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
             No tasks yet. Create your first task to start collecting training data.
           </div>
         ) : (
@@ -835,72 +835,72 @@ export default function BusinessDashboard() {
             {tasks.map(task => (
               <div
                 key={task.id}
-                className="rounded-xl border border-zinc-800 bg-zinc-900 p-6 transition hover:border-zinc-700"
+                className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm transition hover:border-zinc-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700 dark:shadow-none"
               >
                 {editingTaskId === task.id ? (
                   /* Edit mode */
                   <div className="space-y-3">
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-sm font-semibold text-zinc-400">Edit Task</h3>
-                      <button onClick={cancelEdit} className="text-xs text-zinc-500 hover:text-zinc-300">Cancel</button>
+                      <h3 className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Edit Task</h3>
+                      <button onClick={cancelEdit} className="text-xs text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition">Cancel</button>
                     </div>
                     <div>
-                      <label className="mb-1 block text-xs font-medium text-zinc-500">Title</label>
+                      <label className="mb-1 block text-xs font-medium text-zinc-500 dark:text-zinc-500">Title</label>
                       <input
                         type="text"
                         value={editTitle}
                         onChange={e => setEditTitle(e.target.value)}
-                        className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none"
+                        className="w-full rounded-lg border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm text-zinc-900 focus:border-blue-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:text-white transition"
                       />
                     </div>
                     <div>
-                      <label className="mb-1 block text-xs font-medium text-zinc-500">Description</label>
+                      <label className="mb-1 block text-xs font-medium text-zinc-500 dark:text-zinc-500">Description</label>
                       <textarea
                         value={editDescription}
                         onChange={e => setEditDescription(e.target.value)}
                         rows={2}
-                        className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none"
+                        className="w-full rounded-lg border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm text-zinc-900 focus:border-blue-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:text-white transition"
                       />
                     </div>
                     <div>
-                      <label className="mb-1 block text-xs font-medium text-zinc-500">Requirements</label>
+                      <label className="mb-1 block text-xs font-medium text-zinc-500 dark:text-zinc-500">Requirements</label>
                       <textarea
                         value={editRequirements}
                         onChange={e => setEditRequirements(e.target.value)}
                         rows={2}
-                        className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none"
+                        className="w-full rounded-lg border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm text-zinc-900 focus:border-blue-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:text-white transition"
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="mb-1 block text-xs font-medium text-zinc-500">Price per Video ($)</label>
+                        <label className="mb-1 block text-xs font-medium text-zinc-500 dark:text-zinc-500">Price per Video ($)</label>
                         <input
                           type="number"
                           min="0"
                           step="0.01"
                           value={editPrice}
                           onChange={e => setEditPrice(e.target.value)}
-                          className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none"
+                          className="w-full rounded-lg border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm text-zinc-900 focus:border-blue-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:text-white transition"
                         />
                       </div>
                       <div>
-                        <label className="mb-1 block text-xs font-medium text-zinc-500">Deadline</label>
+                        <label className="mb-1 block text-xs font-medium text-zinc-500 dark:text-zinc-500">Deadline</label>
                         <input
                           type="date"
                           value={editDeadline}
                           onChange={e => setEditDeadline(e.target.value)}
-                          className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none"
+                          className="w-full rounded-lg border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm text-zinc-900 focus:border-blue-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:text-white transition"
                         />
                       </div>
                     </div>
                     <div>
-                      <label className="mb-1 block text-xs font-medium text-zinc-500">Webhook URL</label>
+                      <label className="mb-1 block text-xs font-medium text-zinc-500 dark:text-zinc-500">Webhook URL</label>
                       <input
                         type="url"
                         value={editWebhookUrl}
                         onChange={e => setEditWebhookUrl(e.target.value)}
                         placeholder="https://your-server.com/webhook"
-                        className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white placeholder-zinc-600 focus:border-blue-500 focus:outline-none"
+                        className="w-full rounded-lg border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-blue-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-600 transition"
                       />
                     </div>
                     <div className="flex gap-2 pt-1">
@@ -913,7 +913,7 @@ export default function BusinessDashboard() {
                       </button>
                       <button
                         onClick={cancelEdit}
-                        className="rounded-lg border border-zinc-700 px-5 py-2 text-sm font-medium text-zinc-400 hover:border-zinc-600 hover:text-white"
+                        className="rounded-lg border border-zinc-300 px-5 py-2 text-sm font-medium text-zinc-600 hover:border-zinc-400 hover:text-zinc-900 dark:border-zinc-700 dark:text-zinc-400 dark:hover:border-zinc-600 dark:hover:text-white transition"
                       >
                         Cancel
                       </button>
@@ -944,16 +944,16 @@ export default function BusinessDashboard() {
                             : 'Open'}
                         </span>
                       </div>
-                      <p className="mt-1 text-sm text-zinc-400">{task.description}</p>
+                      <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{task.description}</p>
                       {task.requirements && (
                         <p className="mt-2 text-xs text-zinc-500">
-                          <span className="font-medium text-zinc-400">Requirements:</span>{' '}
+                          <span className="font-medium text-zinc-700 dark:text-zinc-400">Requirements:</span>{' '}
                           {task.requirements}
                         </p>
                       )}
                       {task.deadline && (
                         <p className="mt-1 text-xs text-zinc-500">
-                          <span className="font-medium text-zinc-400">Deadline:</span>{' '}
+                          <span className="font-medium text-zinc-700 dark:text-zinc-400">Deadline:</span>{' '}
                           {new Date(task.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                         </p>
                       )}
@@ -963,18 +963,18 @@ export default function BusinessDashboard() {
                             <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
                             <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
                           </svg>
-                          <span className="font-medium text-zinc-400">Webhook:</span>{' '}
+                          <span className="font-medium text-zinc-700 dark:text-zinc-400">Webhook:</span>{' '}
                           <span className="truncate max-w-[300px]">{task.webhookUrl}</span>
                         </p>
                       )}
                     </div>
                     <div className="ml-4 flex flex-col items-end gap-2">
-                      <span className="rounded-full bg-zinc-800 px-3 py-1 text-sm text-zinc-300">
+                      <span className="rounded-full bg-zinc-100 px-3 py-1 text-sm text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
                         {task.submissionCount || 0} submissions
                       </span>
                       <button
                         onClick={() => startEditTask(task)}
-                        className="rounded-lg bg-zinc-700 px-4 py-1.5 text-xs font-medium text-zinc-300 hover:bg-zinc-600 hover:text-white"
+                        className="rounded-lg bg-zinc-100 px-4 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-600 dark:hover:text-white transition"
                       >
                         Edit Task
                       </button>
@@ -990,7 +990,7 @@ export default function BusinessDashboard() {
                       </button>
                       <button
                         onClick={() => viewSubmissions(task)}
-                        className="rounded-lg bg-zinc-700 px-4 py-1.5 text-sm font-medium text-white hover:bg-zinc-600"
+                        className="rounded-lg bg-zinc-900 px-4 py-1.5 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-700 dark:hover:bg-zinc-600 transition"
                       >
                         View Submissions
                       </button>

@@ -23,6 +23,18 @@ export default function BusinessView() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-8 text-foreground">
       <div className="w-full max-w-2xl">
+        <div className="mb-6 flex items-center justify-between">
+          <a href="/" className="text-sm text-zinc-500 hover:text-zinc-300">
+            ← Home
+          </a>
+          <a
+            href="/analytics"
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-lg hover:from-orange-600 hover:to-pink-600 transition font-medium text-sm"
+          >
+            <span>📊</span>
+            View Analytics
+          </a>
+        </div>
         <h1 className="mb-2 text-3xl font-bold tracking-tight">Create training task</h1>
         <p className="mb-8 text-zinc-400">Describe the task you want contributors to record</p>
 
@@ -55,6 +67,7 @@ export default function BusinessView() {
             Post task
           </button>
         </form>
+
       </div>
     </div>
   );

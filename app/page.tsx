@@ -293,6 +293,29 @@ export default function Home() {
                     </div>
                   </Link>
                 </motion.div>
+
+                <motion.div custom={4} variants={scaleIn} initial="hidden" animate="visible">
+                  <Link
+                    href="/analytics"
+                    className="group flex flex-col rounded-2xl border border-zinc-200 bg-white p-8 transition hover:border-orange-500/50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-900/80"
+                  >
+                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-orange-600/20">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ea580c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M3 3v18h18" />
+                        <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3" />
+                      </svg>
+                    </div>
+                    <h2 className="mb-2 text-xl font-semibold text-zinc-900 group-hover:text-orange-600 dark:text-white dark:group-hover:text-orange-400">
+                      Data Analytics
+                    </h2>
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                      Analyze pose data with interactive notebooks. Train ML models in your browser.
+                    </p>
+                    <div className="mt-4 text-sm font-medium text-orange-400 group-hover:text-orange-300">
+                      Open Analytics →
+                    </div>
+                  </Link>
+                </motion.div>
               </>
             )}
           </div>
