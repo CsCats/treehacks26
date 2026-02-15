@@ -90,6 +90,7 @@ export default function BusinessDashboard() {
   const [reviewScore, setReviewScore] = useState<number | null>(null);
   const [reviewFeedback, setReviewFeedback] = useState<string | null>(null);
   const [reviewingDescription, setReviewingDescription] = useState(false);
+  const [fixingDescription, setFixingDescription] = useState(false);
 
   // Edit task
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
@@ -119,6 +120,43 @@ export default function BusinessDashboard() {
       if (Array.isArray(data)) setTasks(data);
     } catch (err) {
       console.error('Failed to fetch tasks:', err);
+    }
+  };
+
+  const fixDescription = async () => {
+    if (!reviewFeedback) return;
+    setFixingDescription(true);
+    try {
+      const res = await fetch('/api/tasks/fix-description', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: newTitle,
+          description: newDescription,
+          requirements: newRequirements,
+          feedback: reviewFeedback,
+        }),
+      });
+
+      if (res.ok) {
+        const improved = await res.json();
+
+        if (improved.title) setNewTitle(improved.title);
+        if (improved.description) setNewDescription(improved.description);
+        if (improved.requirements) setNewRequirements(improved.requirements);
+
+        // Reset review to encourage re-review
+        setReviewScore(null);
+        setReviewFeedback(null);
+      } else {
+        const err = await res.json();
+        alert(err.error || 'Failed to fix description. Please try manually.');
+      }
+    } catch (err) {
+      console.error('Fix failed:', err);
+      alert('Failed to fix description. Please try manually.');
+    } finally {
+      setFixingDescription(false);
     }
   };
 
@@ -714,11 +752,13 @@ export default function BusinessDashboard() {
                           setReviewScore(data.score);
                           setReviewFeedback(data.feedback);
                         } else {
-                          alert(data.error || data.detail || 'Review failed');
+                          const errorMsg = data.error || 'Review failed';
+                          console.error('Review error:', data);
+                          alert(`AI Review Error: ${errorMsg}`);
                         }
                       } catch (err) {
-                        console.error(err);
-                        alert('Review failed. Is Ollama running? Run: ollama pull llama3.1');
+                        console.error('Review exception:', err);
+                        alert('Review failed. Please check console for details.');
                       } finally {
                         setReviewingDescription(false);
                       }
@@ -760,14 +800,32 @@ export default function BusinessDashboard() {
                         />
                       ))}
                     </div>
-                    <p className="font-medium">
-                      {reviewScore >= 4
-                        ? 'Description looks good'
-                        : reviewScore >= 3
-                          ? 'Could be clearer'
-                          : 'Needs improvement'}
-                    </p>
-                    <p className="mt-0.5 text-zinc-600 dark:text-zinc-400">{reviewFeedback}</p>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        <p className="font-medium">
+                          {reviewScore >= 4
+                            ? 'Description looks good'
+                            : reviewScore >= 3
+                              ? 'Could be clearer'
+                              : 'Needs improvement'}
+                        </p>
+                        <p className="mt-0.5 text-zinc-600 dark:text-zinc-400">{reviewFeedback}</p>
+                      </div>
+                      {reviewScore < 4 && (
+                        <button
+                          type="button"
+                          onClick={fixDescription}
+                          disabled={fixingDescription}
+                          className={`flex-shrink-0 rounded-md px-3 py-1.5 text-xs font-semibold transition ${
+                            reviewScore >= 3
+                              ? 'bg-amber-600 hover:bg-amber-700 text-white'
+                              : 'bg-red-600 hover:bg-red-700 text-white'
+                          } disabled:opacity-50 disabled:pointer-events-none`}
+                        >
+                          {fixingDescription ? '✨ Fixing...' : '✨ Fix it'}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>

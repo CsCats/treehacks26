@@ -32,12 +32,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!OPENAI_API_KEY) {
+    if (!OPENAI_API_KEY || !OPENAI_API_KEY.startsWith('sk-')) {
       return NextResponse.json(
-        { error: 'OPENAI_API_KEY not configured' },
+        { error: 'OPENAI_API_KEY not configured or invalid. Add a valid key starting with "sk-" to your .env file.' },
         { status: 500 }
       );
     }
+
+    // Truncate very long descriptions to avoid token limits
+    const truncatedText = text.length > 2000 ? text.substring(0, 2000) + '...' : text;
 
     // Use GPT-4o-mini for fast, cheap reviews
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -50,7 +53,7 @@ export async function POST(request: NextRequest) {
         model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: `Review this task:\n\n${text}` },
+          { role: 'user', content: `Review this task:\n\n${truncatedText}` },
         ],
         temperature: 0.3,
       }),
@@ -58,9 +61,21 @@ export async function POST(request: NextRequest) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('OpenAI API error:', errorText);
+      console.error('OpenAI API error:', response.status, errorText);
+
+      // Parse error for better user feedback
+      let errorMessage = 'OpenAI API request failed';
+      try {
+        const errorData = JSON.parse(errorText);
+        if (errorData.error?.message) {
+          errorMessage = errorData.error.message;
+        }
+      } catch {
+        errorMessage = errorText.substring(0, 200);
+      }
+
       return NextResponse.json(
-        { error: 'OpenAI API request failed', detail: errorText },
+        { error: errorMessage, detail: errorText },
         { status: response.status }
       );
     }
