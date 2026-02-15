@@ -554,6 +554,61 @@ export default function BusinessDashboard() {
                           </p>
                         </div>
                       </div>
+
+                      {/* AI Verification Details */}
+                      {sub.aiVerification && (
+                        <div className={`mt-4 rounded-xl border p-4 ${
+                          sub.aiVerification.verdict === 'pass'
+                            ? 'border-emerald-500/20 bg-emerald-500/5'
+                            : sub.aiVerification.verdict === 'fail'
+                            ? 'border-red-500/20 bg-red-500/5'
+                            : 'border-yellow-500/20 bg-yellow-500/5'
+                        }`}>
+                          <div className="flex items-center gap-3 mb-3">
+                            <div className={`flex h-8 w-8 items-center justify-center rounded-lg text-sm ${
+                              sub.aiVerification.verdict === 'pass'
+                                ? 'bg-emerald-500/20 text-emerald-400'
+                                : sub.aiVerification.verdict === 'fail'
+                                ? 'bg-red-500/20 text-red-400'
+                                : 'bg-yellow-500/20 text-yellow-400'
+                            }`}>
+                              🤖
+                            </div>
+                            <div>
+                              <h4 className="text-sm font-semibold text-white">
+                                AI Verification — {sub.aiVerification.verdict === 'pass' ? 'Approved' : sub.aiVerification.verdict === 'fail' ? 'Flagged' : 'Uncertain'}
+                              </h4>
+                              <p className="text-xs text-zinc-500">
+                                Confidence: {sub.aiVerification.confidence}%
+                                {sub.aiVerification.model && ` • Model: ${sub.aiVerification.model}`}
+                              </p>
+                            </div>
+                            <div className={`ml-auto rounded-full px-3 py-1 text-xs font-bold ${
+                              sub.aiVerification.verdict === 'pass'
+                                ? 'bg-emerald-500/20 text-emerald-300'
+                                : sub.aiVerification.verdict === 'fail'
+                                ? 'bg-red-500/20 text-red-300'
+                                : 'bg-yellow-500/20 text-yellow-300'
+                            }`}>
+                              {sub.aiVerification.confidence}%
+                            </div>
+                          </div>
+                          <p className={`text-sm font-medium ${
+                            sub.aiVerification.verdict === 'pass'
+                              ? 'text-emerald-300'
+                              : sub.aiVerification.verdict === 'fail'
+                              ? 'text-red-300'
+                              : 'text-yellow-300'
+                          }`}>
+                            {sub.aiVerification.reason}
+                          </p>
+                          {sub.aiVerification.details && (
+                            <p className="mt-2 text-sm leading-relaxed text-zinc-400">
+                              {sub.aiVerification.details}
+                            </p>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
