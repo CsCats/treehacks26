@@ -440,21 +440,13 @@ export default function BusinessDashboard() {
                       {(!sub.status || sub.status === 'pending') && rejectingId !== sub.id && (
                         <>
                           {sub.aiVerification?.verdict === 'pass' ? (
-                            /* AI approved — show Confirm + Override */
-                            <>
-                              <button
-                                onClick={e => { e.stopPropagation(); updateSubmissionStatus(sub.id, 'approved'); }}
-                                className="rounded bg-green-600/20 px-3 py-1 text-xs font-medium text-green-400 hover:bg-green-600/30"
-                              >
-                                Confirm Approval
-                              </button>
-                              <button
-                                onClick={e => { e.stopPropagation(); setRejectingId(sub.id); setRejectFeedback(''); }}
-                                className="rounded bg-orange-600/20 px-3 py-1 text-xs font-medium text-orange-400 hover:bg-orange-600/30"
-                              >
-                                Override &amp; Reject
-                              </button>
-                            </>
+                            /* AI approved — only show Override & Reject */
+                            <button
+                              onClick={e => { e.stopPropagation(); setRejectingId(sub.id); setRejectFeedback(''); }}
+                              className="rounded bg-orange-600/20 px-3 py-1 text-xs font-medium text-orange-400 hover:bg-orange-600/30"
+                            >
+                              Override &amp; Reject
+                            </button>
                           ) : (
                             /* No AI approval — show normal Approve + Reject */
                             <>
