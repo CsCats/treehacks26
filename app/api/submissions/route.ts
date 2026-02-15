@@ -66,6 +66,7 @@ export async function POST(request: NextRequest) {
     const businessId = formData.get('businessId') as string | null;
     const contributorId = formData.get('contributorId') as string | null;
     const contributorName = formData.get('contributorName') as string | null;
+    const aiVerificationStr = formData.get('aiVerification') as string | null;
 
     if (!videoFile || !poseDataStr || !taskId) {
       return NextResponse.json(
@@ -93,6 +94,16 @@ export async function POST(request: NextRequest) {
     });
     const poseUrl = await getDownloadURL(poseJsonRef);
 
+    // Parse AI verification if provided
+    let aiVerification = null;
+    if (aiVerificationStr) {
+      try {
+        aiVerification = JSON.parse(aiVerificationStr);
+      } catch {
+        console.warn('Could not parse AI verification data');
+      }
+    }
+
     // Save submission metadata to Firestore
     const submissionDoc = await addDoc(collection(db, 'submissions'), {
       taskId,
@@ -103,6 +114,8 @@ export async function POST(request: NextRequest) {
       videoUrl,
       poseUrl,
       poseData,
+      // AI verification result from Gemini
+      aiVerification: aiVerification || null,
       createdAt: serverTimestamp(),
     });
 

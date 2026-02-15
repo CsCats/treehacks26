@@ -25,6 +25,14 @@ interface Task {
   createdAt?: { seconds: number };
 }
 
+interface AIVerification {
+  verdict: 'pass' | 'fail' | 'uncertain';
+  confidence: number;
+  reason: string;
+  details: string;
+  model?: string;
+}
+
 interface Submission {
   id: string;
   taskId: string;
@@ -36,6 +44,7 @@ interface Submission {
   videoUrl: string;
   poseUrl: string;
   poseData: PoseFrame[];
+  aiVerification?: AIVerification | null;
   createdAt?: { seconds: number };
 }
 
@@ -414,20 +423,47 @@ export default function BusinessDashboard() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
+                      {/* AI Verification badge */}
+                      {sub.aiVerification && (
+                        <span className={`flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                          sub.aiVerification.verdict === 'pass'
+                            ? 'bg-emerald-500/10 text-emerald-400'
+                            : sub.aiVerification.verdict === 'fail'
+                            ? 'bg-red-500/10 text-red-400'
+                            : 'bg-yellow-500/10 text-yellow-400'
+                        }`} title={sub.aiVerification.reason}>
+                          {sub.aiVerification.verdict === 'pass' ? '🤖 Approved by AI' : sub.aiVerification.verdict === 'fail' ? '🤖 Flagged by AI' : '🤖 AI Uncertain'}
+                          <span className="text-[10px] opacity-70">({sub.aiVerification.confidence}%)</span>
+                        </span>
+                      )}
+
                       {(!sub.status || sub.status === 'pending') && rejectingId !== sub.id && (
                         <>
-                          <button
-                            onClick={e => { e.stopPropagation(); updateSubmissionStatus(sub.id, 'approved'); }}
-                            className="rounded bg-green-600/20 px-3 py-1 text-xs font-medium text-green-400 hover:bg-green-600/30"
-                          >
-                            Approve
-                          </button>
-                          <button
-                            onClick={e => { e.stopPropagation(); setRejectingId(sub.id); setRejectFeedback(''); }}
-                            className="rounded bg-red-600/20 px-3 py-1 text-xs font-medium text-red-400 hover:bg-red-600/30"
-                          >
-                            Reject
-                          </button>
+                          {sub.aiVerification?.verdict === 'pass' ? (
+                            /* AI already approved — only show Override */
+                            <button
+                              onClick={e => { e.stopPropagation(); setRejectingId(sub.id); setRejectFeedback(''); }}
+                              className="rounded bg-orange-600/20 px-3 py-1 text-xs font-medium text-orange-400 hover:bg-orange-600/30"
+                            >
+                              Override Decision
+                            </button>
+                          ) : (
+                            /* No AI approval — show normal Approve + Reject */
+                            <>
+                              <button
+                                onClick={e => { e.stopPropagation(); updateSubmissionStatus(sub.id, 'approved'); }}
+                                className="rounded bg-green-600/20 px-3 py-1 text-xs font-medium text-green-400 hover:bg-green-600/30"
+                              >
+                                Approve
+                              </button>
+                              <button
+                                onClick={e => { e.stopPropagation(); setRejectingId(sub.id); setRejectFeedback(''); }}
+                                className="rounded bg-red-600/20 px-3 py-1 text-xs font-medium text-red-400 hover:bg-red-600/30"
+                              >
+                                Reject
+                              </button>
+                            </>
+                          )}
                         </>
                       )}
                       {sub.status === 'rejected' && sub.feedback && (

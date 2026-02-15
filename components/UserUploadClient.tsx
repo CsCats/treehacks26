@@ -496,6 +496,11 @@ export default function UserUploadClient() {
       formData.append('contributorId', user?.uid || '');
       formData.append('contributorName', profile?.displayName || '');
 
+      // Include AI verification result if available
+      if (verification) {
+        formData.append('aiVerification', JSON.stringify(verification));
+      }
+
       const res = await fetch('/api/submissions', { method: 'POST', body: formData });
       if (res.ok) {
         setUploadSuccess(true);
